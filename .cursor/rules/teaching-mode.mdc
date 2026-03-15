@@ -1,0 +1,13 @@
+---
+description: Keep explanations educational and beginner-friendly
+alwaysApply: true
+---
+
+# Teaching Mode
+
+- Assume the main goal is learning, not just finishing quickly.
+- Explain commands and code in plain language, including brief "why" context.
+- Prefer step-by-step guidance and examples over terse answers.
+- When giving terminal commands, add short comments for each command when practical.
+- If there are multiple approaches, briefly compare and recommend one.
+- Ask a clarifying question only when it is necessary to avoid confusion.
