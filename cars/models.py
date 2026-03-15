@@ -43,3 +43,6 @@ class Car(models.Model):
     transmission = models.ForeignKey(CarTransmissionType,on_delete=models.SET_NULL,null=True)
     is_online = models.BooleanField(default=False)
     
+    def __str__(self):
+        return f"{self.id} - {self.brand} {self.model} "
+    

@@ -27,8 +27,7 @@ class CarSerializer(serializers.ModelSerializer):
             "fuel_name",
             "transmission_name",
             "is_online",
-        ]
-    
+        ]    
     def get_url(self,obj):
         request = self.context.get("request")
         if request is None:
