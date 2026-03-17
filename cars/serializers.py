@@ -16,24 +16,40 @@ class CarBodyTypeSerializer(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
-
-class CarModelSerializer(serializers.ModelSerializer):
-    brand_name = serializers.CharField(source="connected_brand.name", read_only=True)
+class CarModelSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = CarModel
         fields = ["id",
                   "name",
-                  "brand_name",
-                  "connected_brand"
                   ]
 
 
 
-class CarBrandSerializer(serializers.ModelSerializer):
-    models = CarModelSerializer(many=True, read_only=True)
+
+class CarBrandSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = CarBrand
-        fields = ["id", "name","models"]
+        fields = ["id", 
+                  "name",
+                  ]
+    
+class CarModelSerializer(serializers.ModelSerializer):
+    brand_detail = CarBrandSimpleSerializer(source="connected_brand", read_only=True)
+    class Meta:
+        model = CarModel
+        fields = ["id",
+                  "name",
+                  "brand_detail",          
+                  ]
+
+class CarBrandSerializer(serializers.ModelSerializer):
+    models = CarModelSimpleSerializer(many=True, read_only=True)
+    class Meta:
+        model = CarBrand
+        fields = ["id", 
+                  "name",
+                  "models"
+                  ]
 
 
 class CarConditionSerializer(serializers.ModelSerializer):
