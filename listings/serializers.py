@@ -11,7 +11,6 @@ class ListingSerializer(serializers.ModelSerializer):
         fields = [
             "url",
             "id", 
-            "publish_date",
             "brand",
             "model",
             "makeyear",

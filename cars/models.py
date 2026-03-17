@@ -1,33 +1,33 @@
 from django.db import models
 
 class CarBodyType(models.Model):
-    body_type=models.CharField(max_length=100)
+    name=models.CharField(max_length=100)
     def __str__(self):
-        return self.body_type
+        return self.name
     
 class CarBrand(models.Model):
-    brand=models.CharField(max_length=100)
+    name=models.CharField(max_length=100)
     def __str__(self):
-        return self.brand
+        return self.name
 
 class CarModel(models.Model):
-    model=models.CharField(max_length=100)
-    connected_brand = models.ForeignKey(CarBrand,on_delete=models.SET_NULL,null=True,blank=True)
+    name=models.CharField(max_length=100)
+    connected_brand = models.ForeignKey(CarBrand,on_delete=models.SET_NULL,null=True,blank=True,related_name="models")
     def __str__(self):
-        return self.model
+        return self.name
 
 class CarCondition(models.Model):
-    condition=models.CharField(max_length=100)
+    name=models.CharField(max_length=100)
     def __str__(self):
-        return self.condition
+        return self.name
     
 class CarFuelType(models.Model):
-    fuel_type=models.CharField(max_length=100)
+    name=models.CharField(max_length=100)
     def __str__(self):
-        return self.fuel_type
+        return self.name
     
 class CarTransmissionType(models.Model):
-    transmission_type=models.CharField(max_length=100)
+    name=models.CharField(max_length=100)
     def __str__(self):
-        return self.transmission_type
+        return self.name
     
