@@ -1,9 +1,9 @@
 
 from django.urls import path
 
-from .views import ListCreateAndList
+from .views import ListingCreateAndList, ListingDetailAndUpdate
 
 urlpatterns = [
-    path("", ListCreateAndList.as_view(), name="listing-list"),
-
+    path("", ListingCreateAndList.as_view(), name="listing-list"),
+    path("<int:pk>/",ListingDetailAndUpdate.as_view(), name="listing-detail")
 ]

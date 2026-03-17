@@ -1,13 +1,32 @@
 from rest_framework import serializers
-
+from rest_framework.reverse import reverse
 from .models import Listing
 
 
 class ListingSerializer(serializers.ModelSerializer):
-    brand_name = serializers.CharField(source="car.brand.brand", read_only=True)
-    model_name = serializers.CharField(source="car.model.model", read_only=True)
-    car_id = serializers.IntegerField(source="car.id", read_only=True)
+    url = serializers.SerializerMethodField(read_only=True)
     
     class Meta:
         model = Listing
-        fields = ["id", "publish_date","car", "car_id", "brand_name", "model_name"]
+        fields = [
+            "url",
+            "id", 
+            "publish_date",
+            "brand",
+            "model",
+            "makeyear",
+            "price",
+            "body_type",
+            "mileage",
+            "condition",
+            "power",
+            "fuel",
+            "transmission",
+            "is_online",
+            ]
+    
+    def get_url(self,obj):
+        req = self.context.get("request")
+        if req is None:
+            return None
+        return reverse("listing-detail",kwargs={"pk": obj.pk},request=req)

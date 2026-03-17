@@ -3,6 +3,10 @@ from rest_framework import generics
 from .models import Listing
 from .serializers import ListingSerializer
 
-class ListCreateAndList(generics.ListCreateAPIView):
+class ListingCreateAndList(generics.ListCreateAPIView):
+    queryset = Listing.objects.all()
+    serializer_class = ListingSerializer
+    
+class ListingDetailAndUpdate(generics.RetrieveUpdateAPIView):
     queryset = Listing.objects.all()
     serializer_class = ListingSerializer
