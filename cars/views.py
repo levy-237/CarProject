@@ -1,5 +1,5 @@
 from rest_framework import generics
-
+from config.mixins import VehicleDataPermission
 from .models import (
     CarBodyType,
     CarBrand,
@@ -18,62 +18,62 @@ from .serializers import (
 )
 
 
-class CarBodyTypeListCreate(generics.ListCreateAPIView):
+class CarBodyTypeListCreate(VehicleDataPermission, generics.ListCreateAPIView):
     queryset = CarBodyType.objects.all()
     serializer_class = CarBodyTypeSerializer
 
 
-class CarBodyTypeDetail(generics.RetrieveUpdateDestroyAPIView):
+class CarBodyTypeDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIView):
     queryset = CarBodyType.objects.all()
     serializer_class = CarBodyTypeSerializer
 
 
-class CarBrandListCreate(generics.ListCreateAPIView):
+class CarBrandListCreate(VehicleDataPermission, generics.ListCreateAPIView):
     queryset = CarBrand.objects.all()
     serializer_class = CarBrandSerializer
 
 
-class CarBrandDetail(generics.RetrieveUpdateDestroyAPIView):
+class CarBrandDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIView):
     queryset = CarBrand.objects.all()
     serializer_class = CarBrandSerializer
 
 
-class CarModelListCreate(generics.ListCreateAPIView):
+class CarModelListCreate(VehicleDataPermission, generics.ListCreateAPIView):
     queryset = CarModel.objects.all()
     serializer_class = CarModelSerializer
 
 
-class CarModelDetail(generics.RetrieveUpdateDestroyAPIView):
+class CarModelDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIView):
     queryset = CarModel.objects.all()
     serializer_class = CarModelSerializer
 
 
-class CarConditionListCreate(generics.ListCreateAPIView):
+class CarConditionListCreate(VehicleDataPermission, generics.ListCreateAPIView):
     queryset = CarCondition.objects.all()
     serializer_class = CarConditionSerializer
 
 
-class CarConditionDetail(generics.RetrieveUpdateDestroyAPIView):
+class CarConditionDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIView):
     queryset = CarCondition.objects.all()
     serializer_class = CarConditionSerializer
 
 
-class CarFuelTypeListCreate(generics.ListCreateAPIView):
+class CarFuelTypeListCreate(VehicleDataPermission, generics.ListCreateAPIView):
     queryset = CarFuelType.objects.all()
     serializer_class = CarFuelTypeSerializer
 
 
-class CarFuelTypeDetail(generics.RetrieveUpdateDestroyAPIView):
+class CarFuelTypeDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIView):
     queryset = CarFuelType.objects.all()
     serializer_class = CarFuelTypeSerializer
 
 
-class CarTransmissionTypeListCreate(generics.ListCreateAPIView):
+class CarTransmissionTypeListCreate(VehicleDataPermission, generics.ListCreateAPIView):
     queryset = CarTransmissionType.objects.all()
     serializer_class = CarTransmissionTypeSerializer
 
 
-class CarTransmissionTypeDetail(generics.RetrieveUpdateDestroyAPIView):
+class CarTransmissionTypeDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIView):
     queryset = CarTransmissionType.objects.all()
     serializer_class = CarTransmissionTypeSerializer
 
