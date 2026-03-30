@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import include, path
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
@@ -34,3 +36,6 @@ urlpatterns = [
     path("api/listings/", include("listings.urls")),
     path("api/cars/", include("cars.urls")),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
