@@ -17,6 +17,12 @@ class ListingImageCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at"]
 
 
+def validate_IntValue(value):
+    if value is not None and value <= 0:
+        raise serializers.ValidationError(
+            {"value": "value can not be less than 1."}
+        )
+
 class ListingSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField(read_only=True)
     brand_detail = CarBrandSimpleSerializer(source="brand", read_only=True)
@@ -26,6 +32,10 @@ class ListingSerializer(serializers.ModelSerializer):
     body_type_detail = CarBodyTypeSerializer(source="body_type", read_only=True)
     fuel_detail = CarFuelTypeSerializer(source="fuel", read_only=True)
     images = ListingImageSerializer(many=True,read_only=True)
+    price = serializers.IntegerField(min_value=0)
+    mileage = serializers.IntegerField(validators=[validate_IntValue])
+    power = serializers.IntegerField(validators=[validate_IntValue])
+    
     # online = serializers.BooleanField(source="is_online",read_only=True)
     # premium = serializers.BooleanField(source="is_premium",read_only=True)
     
@@ -59,20 +69,7 @@ class ListingSerializer(serializers.ModelSerializer):
     def validate(self, data):
         brand = data.get("brand", getattr(self.instance, "brand", None))
         model = data.get("model", getattr(self.instance, "model", None))
-        price = data.get("price", getattr(self.instance, "price", None))
-        mileage = data.get("mileage", getattr(self.instance, "mileage", None))
-        
-        
-        
-        if price is not None and price <= 0:
-            raise serializers.ValidationError(
-                {"price": "price can not be less than 1."}
-            )
-        
-        if mileage is not None and mileage <= 0:
-            raise serializers.ValidationError(
-                {"mileage": "mileage can not be less than 1."}
-            )
+ 
         if brand and model and model.connected_brand_id != brand.id:
             raise serializers.ValidationError(
                 {"model": "Selected model does not belong to the selected brand."}
