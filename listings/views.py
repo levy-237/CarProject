@@ -1,6 +1,6 @@
 from rest_framework import generics
 from rest_framework.parsers import FormParser, MultiPartParser
-from config.mixins import VehicleDataPermission
+from config.mixins import ListingPermission, DetailListingPermission
 from rest_framework import filters
 from .models import Image, Listing
 from .serializers import ListingImageCreateSerializer, ListingSerializer
@@ -8,9 +8,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ListingFilter
 
 class ListingCreateAndList(
-    # VehicleDataPermission,
+    ListingPermission,
                            generics.ListCreateAPIView):
-    queryset = Listing.objects.filter(is_online=True)
+    queryset = Listing.objects.online()
     serializer_class = ListingSerializer
     filter_backends = [DjangoFilterBackend,filters.OrderingFilter]
     filterset_class = ListingFilter
@@ -18,11 +18,20 @@ class ListingCreateAndList(
     ordering = ["id"]
 
     
+
+class ListingByOwnerList(
+    ListingPermission,
+    generics.ListAPIView):
+    serializer_class = ListingSerializer
     
+    def get_queryset(self):
+        return Listing.objects.by_owner(user=self.request.user)
+    
+
 class ListingDetailAndUpdate(
-    # VehicleDataPermission,
+    # DetailListingPermission,
     generics.RetrieveUpdateDestroyAPIView):
-    queryset = Listing.objects.all()
+    queryset = Listing.objects.online()
     serializer_class = ListingSerializer
 
 

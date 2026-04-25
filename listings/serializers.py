@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from .models import Image, Listing
+from users.models import User
 from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,CarConditionSerializer,CarTransmissionTypeSerializer,CarBodyTypeSerializer,CarFuelTypeSerializer
 
 
@@ -23,8 +24,15 @@ def validate_IntValue(value):
             {"value": "value can not be less than 1."}
         )
 
+
+class ListingOwnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["username", "id"]
+
 class ListingSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField(read_only=True)
+    owner = ListingOwnerSerializer(read_only=True)
     brand_detail = CarBrandSimpleSerializer(source="brand", read_only=True)
     model_detail = CarModelSimpleSerializer(source="model", read_only=True)
     condition_detail = CarConditionSerializer(source="condition", read_only=True)
@@ -44,22 +52,17 @@ class ListingSerializer(serializers.ModelSerializer):
         fields = [
             "url",
             "publish_date",
+            "owner",
             "id", 
-            "brand",
             "brand_detail",
-            "model",
             "model_detail",
             "makeyear",
             "price",
-            "body_type",
             "body_type_detail",
             "mileage",
-            "condition",
             "condition_detail",
             "power",
-            "fuel",
             "fuel_detail",
-            "transmission",
             "transmission_detail",
             "is_online",
             "is_premium",
