@@ -50,24 +50,34 @@ class ListingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Listing
         fields = [
+            "id",
             "url",
             "publish_date",
             "owner",
             "id", 
+            "brand",
             "brand_detail",
+            "model",
             "model_detail",
             "makeyear",
             "price",
+            "body_type",
             "body_type_detail",
             "mileage",
+            "condition",
             "condition_detail",
             "power",
+            "fuel",
             "fuel_detail",
+            "transmission",
             "transmission_detail",
             "is_online",
             "is_premium",
+            "hidden",
             "images",
             ]
+    
+    
 
     def validate(self, data):
         brand = data.get("brand", getattr(self.instance, "brand", None))

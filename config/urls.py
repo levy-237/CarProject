@@ -16,7 +16,7 @@ class ApiRootView(APIView):
         return Response(
             {
                 "listings": reverse("listing-list", request=request),
-                "users": reverse("user-create", request=request),
+                "users": reverse("user-list", request=request),
                 "cars": {
                     "body_types": reverse("carbodytype-list", request=request),
                     "brands": reverse("carbrand-list", request=request),

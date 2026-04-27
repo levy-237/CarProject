@@ -15,6 +15,9 @@ class ListingsManager(models.Manager):
     
     def by_owner(self, user):
         return self.filter(owner=user)
+    
+    def not_hidden(self):
+        return self.filter(hidden=False)
 
 
 class Listing(models.Model):
@@ -32,11 +35,12 @@ class Listing(models.Model):
     transmission = models.ForeignKey(CarTransmissionType, on_delete=models.PROTECT)
     is_online = models.BooleanField(default=False)
     is_premium = models.BooleanField(default=False)
+    hidden = models.BooleanField(default=False)
     
     objects = ListingsManager()
 
     def __str__(self):
-        return f"{self.brand} - {self.model} - {self.pk}"
+        return f"car listing id: {self.pk} \n owner: {self.owner.username} - {self.owner.id}"
 
 
 class Image(models.Model):
