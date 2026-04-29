@@ -5,10 +5,6 @@ from django.urls import include, path
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
 
 
 class ApiRootView(APIView):
@@ -40,8 +36,6 @@ urlpatterns = [
     path("api/listings/", include("listings.urls")),
     path("api/users/", include("users.urls")),
     path("api/cars/", include("cars.urls")),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 
 if settings.DEBUG:
