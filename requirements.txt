@@ -4,9 +4,12 @@ cffi==2.0.0
 charset-normalizer==3.4.7
 cryptography==47.0.0
 Django==6.0.3
+django-cors-headers==4.9.0
 django-filter==25.2
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
+factory_boy==3.3.3
+Faker==40.15.0
 idna==3.13
 pillow==12.1.1
 pyasn1==0.6.3

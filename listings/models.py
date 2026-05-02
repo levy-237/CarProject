@@ -18,6 +18,9 @@ class ListingsManager(models.Manager):
     
     def not_hidden(self):
         return self.filter(hidden=False)
+    
+    def hidden(self):
+        return self.filter(hidden=True)
 
 
 class Listing(models.Model):
@@ -35,7 +38,7 @@ class Listing(models.Model):
     transmission = models.ForeignKey(CarTransmissionType, on_delete=models.PROTECT)
     is_online = models.BooleanField(default=False)
     is_premium = models.BooleanField(default=False)
-    hidden = models.BooleanField(default=False)
+    hidden = models.BooleanField(default=True)
     
     objects = ListingsManager()
 
