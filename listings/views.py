@@ -36,7 +36,11 @@ class ListingDetailUpdateDelete(
         listing = serializer.instance
         if listing.owner != self.request.user and not self.request.user.is_staff:
             raise PermissionDenied("You are not the owner of this listing.")
-        serializer.save()
+        new_price = serializer.validated_data.get("price")
+        if new_price is None or new_price == listing.price:
+            serializer.save()
+            return
+        serializer.save(old_price=listing.price)
     
     def perform_destroy(self, instance):
         if instance.owner != self.request.user and not self.request.user.is_staff:

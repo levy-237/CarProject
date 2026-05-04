@@ -1,11 +1,8 @@
-from rest_framework.test import APIRequestFactory, force_authenticate
-from listings.views import FavouriteListingUpdate
-from users.models import User
-from listings.models import Listing
 from rest_framework import status
 from django.urls import reverse
 from django.test import TestCase
 from listings.tests.factories import ListingFactory
+from cars.tests.factories import CarBrandFactory
 
 class ListingViewsTests(TestCase):
     def setUp(self):
@@ -19,4 +16,18 @@ class ListingViewsTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 10)
+    
+    def test_filter_listings(self):
+        brand = CarBrandFactory()
+        ListingFactory(brand=brand, is_online=True, hidden=False)
+        ListingFactory(brand=brand, is_online=True, hidden=False)
+        
+        ListingFactory(is_online=True, hidden=False)
+        ListingFactory(is_online=True, hidden=False)
+        
+
+        url = reverse("listing-list")
+        response = self.client.get(url, {"brand": [brand.id]})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 2)
         

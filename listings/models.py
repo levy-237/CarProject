@@ -30,6 +30,7 @@ class Listing(models.Model):
     model = models.ForeignKey(CarModel, on_delete=models.PROTECT)
     makeyear = models.DateField()
     price = models.IntegerField()
+    old_price = models.IntegerField(null=True, blank=True)
     body_type = models.ForeignKey(CarBodyType, on_delete=models.PROTECT)
     mileage = models.IntegerField()
     condition = models.ForeignKey(CarCondition, on_delete=models.PROTECT)

@@ -61,6 +61,7 @@ class ListingSerializer(serializers.ModelSerializer):
             "model_detail",
             "makeyear",
             "price",
+            "old_price",
             "body_type",
             "body_type_detail",
             "mileage",
