@@ -13,6 +13,12 @@ class ApiRootView(APIView):
             {
                 "listings": reverse("listing-list", request=request),
                 "users": reverse("user-list", request=request),
+                "images": reverse("listing-image-create", request=request),
+                # temporary
+                "locations": {
+                    "provinces": reverse("province-list", request=request),
+                    "cities": reverse("city-list", request=request),
+                },
                 "cars": {
                     "body_types": reverse("carbodytype-list", request=request),
                     "brands": reverse("carbrand-list", request=request),
@@ -36,6 +42,7 @@ urlpatterns = [
     path("api/listings/", include("listings.urls")),
     path("api/users/", include("users.urls")),
     path("api/cars/", include("cars.urls")),
+    # temporary
     path("api/province/", ProvinceList.as_view(), name="province-list"),
     path("api/province/<int:pk>/", ProvinceDetailUpdateDestroy.as_view(), name="province-detail"),
     path("api/city/", CityList.as_view(), name="city-list"),

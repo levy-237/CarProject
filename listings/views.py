@@ -14,7 +14,7 @@ from .models import PriceHistory
 
 
 class ListingCreateAndList(
-    ListingPermission,
+    # ListingPermission,
     generics.ListCreateAPIView):
     queryset = Listing.objects.online()
     serializer_class = ListingSerializer
@@ -30,7 +30,7 @@ class ListingCreateAndList(
 
 
 class ListingDetailUpdateDelete(
-    ListingPermission,
+    # ListingPermission,
     generics.RetrieveUpdateDestroyAPIView):
     queryset = Listing.objects.not_hidden()
     serializer_class = ListingSerializer

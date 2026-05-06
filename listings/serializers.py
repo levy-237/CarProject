@@ -66,6 +66,8 @@ class ListingSerializer(serializers.ModelSerializer):
     body_type_detail = CarBodyTypeSerializer(source="body_type", read_only=True)
     fuel_detail = CarFuelTypeSerializer(source="fuel", read_only=True)
     images = ListingImageSerializer(many=True,read_only=True)
+    province_detail = ProvinceSimpleSerializer(source="province",read_only=True)
+    city_detail = CitySimpleSerializer(source="city",read_only=True)
     price = serializers.IntegerField(min_value=0)
     mileage = serializers.IntegerField(validators=[validate_IntValue])
     power = serializers.IntegerField(validators=[validate_IntValue])
@@ -80,7 +82,7 @@ class ListingSerializer(serializers.ModelSerializer):
             "url",
             "publish_date",
             "owner",
-            "id", 
+            "title", 
             "brand",
             "brand_detail",
             "model",
@@ -98,6 +100,11 @@ class ListingSerializer(serializers.ModelSerializer):
             "fuel_detail",
             "transmission",
             "transmission_detail",
+            "description",
+            "province",
+            "province_detail",
+            "city",
+            "city_detail",
             "is_online",
             "is_premium",
             "hidden",
@@ -109,10 +116,17 @@ class ListingSerializer(serializers.ModelSerializer):
     def validate(self, data):
         brand = data.get("brand", getattr(self.instance, "brand", None))
         model = data.get("model", getattr(self.instance, "model", None))
+        province = data.get("province", getattr(self.instance, "province", None))
+        city = data.get("city", getattr(self.instance, "city", None))
+        
  
         if brand and model and model.connected_brand_id != brand.id:
             raise serializers.ValidationError(
                 {"model": "Selected model does not belong to the selected brand."}
+            )
+        if province and city and city.province_id != province.id:
+            raise serializers.ValidationError(
+                {"location": "Selected city does not belong to the selected province."}
             )
 
         return data
