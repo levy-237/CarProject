@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-from .models import Image, Listing
+from .models import Image, Listing,Province,City
 from users.models import User
 from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,CarConditionSerializer,CarTransmissionTypeSerializer,CarBodyTypeSerializer,CarFuelTypeSerializer
 
@@ -16,6 +16,32 @@ class ListingImageCreateSerializer(serializers.ModelSerializer):
         model = Image
         fields = ["id", "listing",  "image", "created_at"]
         read_only_fields = ["id", "created_at"]
+
+class CitySimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = City
+        fields = ["id", "name"]
+     
+class ProvinceSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Province
+        fields = ["id", "name"]
+        
+
+class ProvinceSerializer(serializers.ModelSerializer):
+    connected_cities_detail = CitySimpleSerializer(source="connected_cities",read_only=True,many=True)
+
+    class Meta:
+        model = Province
+        fields = ["id","name","connected_cities","connected_cities_detail"]
+
+
+class CitySerializer(serializers.ModelSerializer):
+    province_detail = ProvinceSimpleSerializer(source="province",read_only=True)
+    class Meta:
+        model = City
+        fields =["id","name","province","province_detail"]
+
 
 
 def validate_IntValue(value):
@@ -61,7 +87,7 @@ class ListingSerializer(serializers.ModelSerializer):
             "model_detail",
             "makeyear",
             "price",
-            "old_price",
+            "price_history",
             "body_type",
             "body_type_detail",
             "mileage",

@@ -6,6 +6,7 @@ from users.models import User
 def listing_image_upload_to(instance, filename):
     return f"listings/{instance.listing_id}/{filename}"
 
+
 class ListingsManager(models.Manager):
     def online(self):
         return self.filter(is_online=True)
@@ -22,6 +23,26 @@ class ListingsManager(models.Manager):
     def hidden(self):
         return self.filter(hidden=True)
 
+    
+
+class Province(models.Model):
+    name = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+
+    def __str__(self):
+        return self.name
+    
+
+class City(models.Model):
+    name = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    province = models.ForeignKey(Province, on_delete=models.PROTECT,related_name="connected_cities")
+    
+    
+    def __str__(self):
+        return self.name
+
 
 class Listing(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings")
@@ -30,13 +51,15 @@ class Listing(models.Model):
     model = models.ForeignKey(CarModel, on_delete=models.PROTECT)
     makeyear = models.DateField()
     price = models.IntegerField()
-    old_price = models.IntegerField(null=True, blank=True)
     body_type = models.ForeignKey(CarBodyType, on_delete=models.PROTECT)
     mileage = models.IntegerField()
     condition = models.ForeignKey(CarCondition, on_delete=models.PROTECT)
     power = models.IntegerField()
     fuel = models.ForeignKey(CarFuelType, on_delete=models.PROTECT)
     transmission = models.ForeignKey(CarTransmissionType, on_delete=models.PROTECT)
+    province = models.ForeignKey(Province,blank=True, null=True, on_delete=models.PROTECT)
+    city = models.ForeignKey(City,blank=True, null=True, on_delete=models.PROTECT)
+    description = models.TextField(blank=True, null=True,max_length=2000)
     is_online = models.BooleanField(default=False)
     is_premium = models.BooleanField(default=False)
     hidden = models.BooleanField(default=True)
@@ -58,3 +81,14 @@ class Image(models.Model):
 
     def __str__(self):
         return f"Image #{self.pk} for listing #{self.listing_id}"
+    
+    
+class PriceHistory(models.Model):
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="price_history")
+    old_price = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Price history for listing #{self.listing_id} at {self.created_at}"
+    
+

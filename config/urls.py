@@ -5,7 +5,7 @@ from django.urls import include, path
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from listings.views import ProvinceList,ProvinceDetailUpdateDestroy,CityList,CityDetailUpdateDestroy
 
 class ApiRootView(APIView):
     def get(self, request, *args, **kwargs):
@@ -36,6 +36,11 @@ urlpatterns = [
     path("api/listings/", include("listings.urls")),
     path("api/users/", include("users.urls")),
     path("api/cars/", include("cars.urls")),
+    path("api/province/", ProvinceList.as_view(), name="province-list"),
+    path("api/province/<int:pk>/", ProvinceDetailUpdateDestroy.as_view(), name="province-detail"),
+    path("api/city/", CityList.as_view(), name="city-list"),
+    path("api/city/<int:pk>/", CityDetailUpdateDestroy.as_view(), name="city-detail"),
+
 ]
 
 if settings.DEBUG:
