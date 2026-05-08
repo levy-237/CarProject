@@ -6,16 +6,29 @@ from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,C
 
 
 class ListingImageSerializer(serializers.ModelSerializer):
+    local_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = Image
-        fields = ["id", "image", "created_at"]
+        fields = ["id","local_url", "image", "uploadcare_uuid", "created_at"]
+    
+    def get_local_url(self,obj):
+        req = self.context.get("request")
+        if req is None:
+            return None
+        return reverse("listing-image-detail",kwargs={"pk": obj.pk},request=req)
 
 
 class ListingImageCreateSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(write_only=True)
+    
     class Meta:
         model = Image
-        fields = ["id", "listing",  "image", "created_at"]
-        read_only_fields = ["id", "created_at"]
+        fields = ["id", "listing", "image", "uploadcare_uuid", "created_at"]
+        read_only_fields = ["id", "uploadcare_uuid", "created_at"]
+
+    def to_representation(self, instance):
+        return ListingImageSerializer(instance, context=self.context).data
 
 class CitySimpleSerializer(serializers.ModelSerializer):
     class Meta:

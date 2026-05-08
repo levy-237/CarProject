@@ -1,7 +1,7 @@
 from django.db import models
 from cars.models import CarBrand,CarBodyType,CarModel,CarCondition,CarFuelType,CarTransmissionType
-from django.utils import timezone
 from users.models import User
+
 
 def listing_image_upload_to(instance, filename):
     return f"listings/{instance.listing_id}/{filename}"
@@ -77,11 +77,12 @@ class Image(models.Model):
         on_delete=models.CASCADE,
         related_name="images",
     )
-    image = models.ImageField(upload_to=listing_image_upload_to)
+    image = models.URLField(max_length=500)
+    uploadcare_uuid = models.CharField(max_length=36, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Image #{self.pk} for listing #{self.listing_id}"
+        return f"Image #{self.pk} for listing #{self.listing_id} ({self.uploadcare_uuid})"
     
     
 class PriceHistory(models.Model):

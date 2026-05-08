@@ -1,3 +1,7 @@
+import os
+
+import certifi
+from django.conf import settings
 from rest_framework import generics
 from rest_framework.parsers import FormParser, MultiPartParser
 from config.mixins import ListingPermission
@@ -11,6 +15,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from .models import PriceHistory
+from .uploadcare import get_uploadcare_client
+
 
 
 class ListingCreateAndList(
@@ -145,21 +151,56 @@ class ListingByOwnerList(
     
 
 class ListingImageCreateView(
-    ListingPermission,
+    # ListingPermission,
     generics.ListCreateAPIView):
     queryset = Image.objects.all()
     serializer_class = ListingImageCreateSerializer
     parser_classes = [MultiPartParser, FormParser]
-    
+
     def perform_create(self, serializer):
         listing = serializer.validated_data.get("listing")
-        if listing.owner != self.request.user:
-            raise PermissionDenied("You are not the owner of this listing.")
-        serializer.save()
-        
-    
-    
-    
+        image_file = serializer.validated_data.get("image")
+        # if listing.owner != self.request.user:
+        #     raise PermissionDenied("You are not the owner of this listing.")
+
+        try:
+            image_file.seek(0)
+            uploadcare_client = get_uploadcare_client()
+            uploadcare_file = uploadcare_client.upload(
+                image_file,
+                size=image_file.size,
+                store=True,
+            )
+        except Exception as exc:
+            raise ValidationError({"image": f"Uploadcare upload failed: {exc}"}) from exc
+
+        serializer.save(
+            image=uploadcare_file.cdn_url,
+            uploadcare_uuid=uploadcare_file.uuid,
+        )
+
+
+class ListingImageDestroyView(
+    # ListingPermission,
+    generics.RetrieveUpdateDestroyAPIView):
+    queryset = Image.objects.all()
+    serializer_class = ListingImageCreateSerializer
+
+    def perform_destroy(self, instance):
+        # if instance.listing.owner != self.request.user and not self.request.user.is_staff:
+        #     raise PermissionDenied("You are not the owner of this image.")
+
+        if instance.uploadcare_uuid:
+            try:
+                get_uploadcare_client().file(instance.uploadcare_uuid).delete()
+            except Exception as exc:
+                raise ValidationError(
+                    {"image": f"Uploadcare delete failed: {exc}"}
+                ) from exc
+
+        instance.delete()
+
+
 class ProvinceList(
     # ListingPermission,
     generics.ListCreateAPIView):

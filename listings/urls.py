@@ -1,7 +1,7 @@
 
 from django.urls import path
 
-from .views import ListingCreateAndList, ListingDetailUpdateDelete, ListingImageCreateView, ListingByOwnerList, FavouriteListingUpdate, FavouriteListView, CompareListings,RecommendedListings
+from .views import ListingCreateAndList, ListingDetailUpdateDelete, ListingImageCreateView, ListingImageDestroyView, ListingByOwnerList, FavouriteListingUpdate, FavouriteListView, CompareListings,RecommendedListings
 
 urlpatterns = [
     path("", ListingCreateAndList.as_view(), name="listing-list"),
@@ -12,4 +12,5 @@ urlpatterns = [
     path("compare/", CompareListings.as_view(), name="compare-list"),
     path("recomend/", RecommendedListings.as_view(), name="recomended-list"),
     path("images/", ListingImageCreateView.as_view(), name="listing-image-create"),
+    path("images/<int:pk>/", ListingImageDestroyView.as_view(), name="listing-image-detail"),
 ]
