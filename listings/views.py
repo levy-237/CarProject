@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from .models import PriceHistory
-from .uploadcare import get_uploadcare_client
+from .uploadcare import get_uploadcare_client,create_uploadcare_image,destroy_uploadcare_image
 
 
 
@@ -54,6 +54,9 @@ class ListingDetailUpdateDelete(
     def perform_destroy(self, instance):
         if instance.owner != self.request.user and not self.request.user.is_staff:
             raise PermissionDenied("You are not the owner of this listing.")
+        for uuid in instance.images.exclude(uploadcare_uuid=""):
+            destroy_uploadcare_image(uuid.uploadcare_uuid)
+
         instance.delete()
         
 
@@ -162,18 +165,10 @@ class ListingImageCreateView(
         image_file = serializer.validated_data.get("image")
         # if listing.owner != self.request.user:
         #     raise PermissionDenied("You are not the owner of this listing.")
-
-        try:
-            image_file.seek(0)
-            uploadcare_client = get_uploadcare_client()
-            uploadcare_file = uploadcare_client.upload(
-                image_file,
-                size=image_file.size,
-                store=True,
-            )
-        except Exception as exc:
-            raise ValidationError({"image": f"Uploadcare upload failed: {exc}"}) from exc
-
+        
+        if image_file:
+           uploadcare_file = create_uploadcare_image(image_file)
+        
         serializer.save(
             image=uploadcare_file.cdn_url,
             uploadcare_uuid=uploadcare_file.uuid,
@@ -191,13 +186,7 @@ class ListingImageDestroyView(
         #     raise PermissionDenied("You are not the owner of this image.")
 
         if instance.uploadcare_uuid:
-            try:
-                get_uploadcare_client().file(instance.uploadcare_uuid).delete()
-            except Exception as exc:
-                raise ValidationError(
-                    {"image": f"Uploadcare delete failed: {exc}"}
-                ) from exc
-
+            destroy_uploadcare_image(instance.uploadcare_uuid)
         instance.delete()
 
 

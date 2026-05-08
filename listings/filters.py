@@ -1,6 +1,7 @@
 from datetime import date
 
 import django_filters
+from django.db.models import Q, Case, When, Value, IntegerField
 
 from cars.models import (
     CarBodyType,
@@ -39,6 +40,8 @@ class ListingFilter(django_filters.FilterSet):
 
     mindate = django_filters.NumberFilter(method="filter_min_year")
     maxdate = django_filters.NumberFilter(method="filter_max_year")
+    search = django_filters.CharFilter(method="filter_search")
+
 
     class Meta:
         model = Listing
@@ -49,4 +52,24 @@ class ListingFilter(django_filters.FilterSet):
 
     def filter_max_year(self, queryset, name, value):
         return queryset.filter(makeyear__lte=date(int(value), 12, 31))
+    
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+              Q(title__icontains=value) |
+              Q(description__icontains=value) |
+              Q(body_type__name__icontains=value) |
+              Q(brand__name__icontains=value) |
+              Q(model__name__icontains=value) |
+              Q(province__name__icontains=value) |
+              Q(city__name__icontains=value) |
+              Q(fuel__name__icontains=value)
+              ).annotate(
+                 match_priority=Case(
+                 When(title__icontains=value, then=Value(0)),
+                 When(description__icontains=value, then=Value(1)),
+                 When(body_type__name__icontains=value, then=Value(2)),
+                 default=Value(99),
+                 output_field=IntegerField(),
+                )
+            ).order_by("match_priority").distinct()
     

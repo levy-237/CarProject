@@ -149,3 +149,9 @@ class ListingSerializer(serializers.ModelSerializer):
         if req is None:
             return None
         return reverse("listing-detail",kwargs={"pk": obj.pk},request=req)
+    
+    def create(self,validated_data):
+        price_history = validated_data.pop("price_history",None)
+        
+        listing = Listing.objects.create(**validated_data)
+        return listing
