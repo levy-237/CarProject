@@ -151,6 +151,13 @@ class ListingImageCreateView(
     serializer_class = ListingImageCreateSerializer
     parser_classes = [MultiPartParser, FormParser]
     
+    def perform_create(self, serializer):
+        listing = serializer.validated_data.get("listing")
+        if listing.owner != self.request.user:
+            raise PermissionDenied("You are not the owner of this listing.")
+        serializer.save()
+        
+    
     
     
 class ProvinceList(
