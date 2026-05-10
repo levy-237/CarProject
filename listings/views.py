@@ -26,8 +26,7 @@ class ListingCreateAndList(
     serializer_class = ListingSerializer
     filter_backends = [DjangoFilterBackend,filters.OrderingFilter]
     filterset_class = ListingFilter
-    ordering_fields = ['price', 'makeyear',"mileage"]
-    ordering = ["id"]
+    ordering_fields = ['price', 'makeyear',"mileage","publish_date"]
     
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)

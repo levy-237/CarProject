@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, savedSearch
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -7,7 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username',"first_name","last_name", 'email', 'phone', 'password',"picture_file","picture", "uploadcare_uuid", "favourite_listings"]
+        fields = ['id', 'username',"first_name","last_name", 'email', 'phone', 'password',"picture_file","picture", "uploadcare_uuid", "favourite_listings","saved_search"]
         read_only_fields = ["picture", "uploadcare_uuid", "favourite_listings"]        
         
     def validate_password(self, value):
@@ -21,3 +21,12 @@ class UserSerializer(serializers.ModelSerializer):
         
         user = User.objects.create_user(**validated_data)
         return user
+    
+    
+class SavedSeachSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = savedSearch
+        fields = ["id","created_at","owner","name","saved_url"]
+        read_only_fields = ["owner"]
+        

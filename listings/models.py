@@ -9,7 +9,7 @@ def listing_image_upload_to(instance, filename):
 
 class ListingsManager(models.Manager):
     def online(self):
-        return self.filter(is_online=True)
+        return self.filter(is_online=True).order_by("-is_premium","-publish_date")
     
     def premium(self):
         return self.filter(is_premium=True)
@@ -63,6 +63,7 @@ class Listing(models.Model):
     description = models.TextField(max_length=2000)
     is_online = models.BooleanField(default=False)
     is_premium = models.BooleanField(default=False)
+    is_sold = models.BooleanField(default=False)
     hidden = models.BooleanField(default=True)
     
     objects = ListingsManager()
@@ -88,9 +89,7 @@ class Image(models.Model):
 class PriceHistory(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="price_history")
     old_price = models.IntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f"Price history for listing #{self.listing_id} at {self.created_at}"
-    
-

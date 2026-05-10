@@ -14,4 +14,11 @@ class User(AbstractUser):
     related_name="favorited_by",
     blank=True,
     )
+
+    
+class savedSearch(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="saved_search")
+    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=100)
+    saved_url = models.CharField(max_length=500)
     

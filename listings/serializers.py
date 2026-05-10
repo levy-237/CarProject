@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-from .models import Image, Listing,Province,City
+from .models import Image, Listing, Province, City, PriceHistory
 from users.models import User
 from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,CarConditionSerializer,CarTransmissionTypeSerializer,CarBodyTypeSerializer,CarFuelTypeSerializer
 
@@ -69,6 +69,11 @@ class ListingOwnerSerializer(serializers.ModelSerializer):
         model = User
         fields = ["username", "id"]
 
+class PriceHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PriceHistory
+        fields =["listing","old_price","created_at"]
+
 class ListingSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField(read_only=True)
     owner = ListingOwnerSerializer(read_only=True)
@@ -78,6 +83,7 @@ class ListingSerializer(serializers.ModelSerializer):
     transmission_detail = CarTransmissionTypeSerializer(source="transmission", read_only=True)
     body_type_detail = CarBodyTypeSerializer(source="body_type", read_only=True)
     fuel_detail = CarFuelTypeSerializer(source="fuel", read_only=True)
+    price_history = PriceHistorySerializer(many=True)
     images = ListingImageSerializer(many=True,read_only=True)
     province_detail = ProvinceSimpleSerializer(source="province",read_only=True)
     city_detail = CitySimpleSerializer(source="city",read_only=True)
@@ -120,6 +126,7 @@ class ListingSerializer(serializers.ModelSerializer):
             "city_detail",
             "is_online",
             "is_premium",
+            "is_sold",
             "hidden",
             "images",
             ]
