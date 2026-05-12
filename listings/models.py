@@ -25,24 +25,6 @@ class ListingsManager(models.Manager):
 
     
 
-class Province(models.Model):
-    name = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-
-    def __str__(self):
-        return self.name
-    
-
-class City(models.Model):
-    name = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-    province = models.ForeignKey(Province, on_delete=models.PROTECT,related_name="connected_cities")
-    
-    
-    def __str__(self):
-        return self.name
-
 
 class Listing(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings")
@@ -58,8 +40,6 @@ class Listing(models.Model):
     power = models.IntegerField()
     fuel = models.ForeignKey(CarFuelType, on_delete=models.PROTECT)
     transmission = models.ForeignKey(CarTransmissionType, on_delete=models.PROTECT)
-    province = models.ForeignKey(Province, on_delete=models.PROTECT)
-    city = models.ForeignKey(City, on_delete=models.PROTECT)
     description = models.TextField(max_length=2000)
     is_online = models.BooleanField(default=False)
     is_premium = models.BooleanField(default=False)

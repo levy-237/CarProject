@@ -1,26 +1,30 @@
 from rest_framework import generics
-from .models import User, savedSearch
-from .serializers import UserSerializer, SavedSeachSerializer
+from .models import User, savedSearch, Province, City
+from .serializers import UserSerializer, SavedSeachSerializer, ProvinceSerializer, CitySerializer
 from config.mixins import UserPermission
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from listings.uploadcare import get_uploadcare_client,create_uploadcare_image,destroy_uploadcare_image
-
+from common.mail_services import send_email
 
 class UserCreateView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
     def perform_create(self,serializer):
-        image_file = serializer.validated_data.get("picture_file")
+        image_file = serializer.validated_data.pop("picture_file", None)
+        name = serializer.validated_data.get("first_name") + " " + serializer.validated_data.get("last_name")
+        email = serializer.validated_data.get("email")
         
         if not image_file:
-            serializer.save()
+           return serializer.save()
         
         uploadcare_file = create_uploadcare_image(image_file)
         serializer.save(
             picture=uploadcare_file.cdn_url,
             uploadcare_uuid=uploadcare_file.uuid
         )
+        send_email(name, email, "Levanchiko says Hi!!!, Thanks for signing up on our beatiful website", "Thanks for signing up on our beatiful website!, i hope you enjoy in!")
+        
         
            
 class UserDetailView(
@@ -94,4 +98,29 @@ class SavedSearchDetailUpdateDelete(
             
         
     
+    
+
+class ProvinceList(
+    # ListingPermission,
+    generics.ListCreateAPIView):
+    queryset = Province.objects.all()
+    serializer_class = ProvinceSerializer
+    
+class ProvinceDetailUpdateDestroy(
+    # ListingPermission,
+      generics.RetrieveUpdateDestroyAPIView):
+    queryset = Province.objects.all()
+    serializer_class = ProvinceSerializer
+    
+class CityList(
+    # ListingPermission,
+    generics.ListCreateAPIView):
+    queryset = City.objects.all()
+    serializer_class = CitySerializer
+    
+class CityDetailUpdateDestroy(
+    # ListingPermission,
+      generics.RetrieveUpdateDestroyAPIView):
+    queryset = City.objects.all()
+    serializer_class = CitySerializer
     

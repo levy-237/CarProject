@@ -12,6 +12,7 @@ from cars.models import (
     CarTransmissionType,
 )
 from .models import Listing
+from users.models import City, Province
 
 class ListingFilter(django_filters.FilterSet):
     brand = django_filters.ModelMultipleChoiceFilter(
@@ -32,7 +33,13 @@ class ListingFilter(django_filters.FilterSet):
     transmission = django_filters.ModelMultipleChoiceFilter(
         field_name="transmission", queryset=CarTransmissionType.objects.all()
     )
-
+    city = django_filters.ModelMultipleChoiceFilter(
+        field_name="owner__city", queryset=City.objects.all()
+    )
+    province = django_filters.ModelMultipleChoiceFilter(
+        field_name="owner__province", queryset=Province.objects.all()
+    )
+    
     minprice = django_filters.NumberFilter(field_name="price", lookup_expr="gte")
     maxprice = django_filters.NumberFilter(field_name="price", lookup_expr="lte")
     minmileage = django_filters.NumberFilter(field_name="mileage", lookup_expr="gte")
@@ -62,7 +69,9 @@ class ListingFilter(django_filters.FilterSet):
               Q(model__name__icontains=value) |
               Q(province__name__icontains=value) |
               Q(city__name__icontains=value) |
-              Q(fuel__name__icontains=value)
+              Q(fuel__name__icontains=value) | 
+              Q(owner__city__name__icontains=value) |
+              Q(owner__province__name__icontains=value)
               ).annotate(
                  match_priority=Case(
                  When(title__icontains=value, then=Value(0)),

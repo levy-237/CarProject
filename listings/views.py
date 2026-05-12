@@ -6,8 +6,8 @@ from rest_framework import generics
 from rest_framework.parsers import FormParser, MultiPartParser
 from config.mixins import ListingPermission
 from rest_framework import filters
-from .models import Image, Listing,Province,City
-from .serializers import ListingImageCreateSerializer, ListingSerializer,ProvinceSerializer,CitySerializer
+from .models import Image, Listing
+from .serializers import ListingImageCreateSerializer, ListingSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ListingFilter
 from rest_framework.exceptions import PermissionDenied
@@ -188,28 +188,3 @@ class ListingImageDestroyView(
             destroy_uploadcare_image(instance.uploadcare_uuid)
         instance.delete()
 
-
-class ProvinceList(
-    # ListingPermission,
-    generics.ListCreateAPIView):
-    queryset = Province.objects.all()
-    serializer_class = ProvinceSerializer
-    
-class ProvinceDetailUpdateDestroy(
-    # ListingPermission,
-      generics.RetrieveUpdateDestroyAPIView):
-    queryset = Province.objects.all()
-    serializer_class = ProvinceSerializer
-    
-class CityList(
-    # ListingPermission,
-    generics.ListCreateAPIView):
-    queryset = City.objects.all()
-    serializer_class = CitySerializer
-    
-class CityDetailUpdateDestroy(
-    # ListingPermission,
-      generics.RetrieveUpdateDestroyAPIView):
-    queryset = City.objects.all()
-    serializer_class = CitySerializer
-    

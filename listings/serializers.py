@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-from .models import Image, Listing, Province, City, PriceHistory
+from .models import Image, Listing, PriceHistory
 from users.models import User
 from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,CarConditionSerializer,CarTransmissionTypeSerializer,CarBodyTypeSerializer,CarFuelTypeSerializer
 
@@ -29,31 +29,6 @@ class ListingImageCreateSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return ListingImageSerializer(instance, context=self.context).data
-
-class CitySimpleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = City
-        fields = ["id", "name"]
-     
-class ProvinceSimpleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Province
-        fields = ["id", "name"]
-        
-
-class ProvinceSerializer(serializers.ModelSerializer):
-    connected_cities_detail = CitySimpleSerializer(source="connected_cities",read_only=True,many=True)
-
-    class Meta:
-        model = Province
-        fields = ["id","name","connected_cities","connected_cities_detail"]
-
-
-class CitySerializer(serializers.ModelSerializer):
-    province_detail = ProvinceSimpleSerializer(source="province",read_only=True)
-    class Meta:
-        model = City
-        fields =["id","name","province","province_detail"]
 
 
 
@@ -85,11 +60,11 @@ class ListingSerializer(serializers.ModelSerializer):
     fuel_detail = CarFuelTypeSerializer(source="fuel", read_only=True)
     price_history = PriceHistorySerializer(many=True)
     images = ListingImageSerializer(many=True,read_only=True)
-    province_detail = ProvinceSimpleSerializer(source="province",read_only=True)
-    city_detail = CitySimpleSerializer(source="city",read_only=True)
+
     price = serializers.IntegerField(min_value=0)
     mileage = serializers.IntegerField(validators=[validate_IntValue])
     power = serializers.IntegerField(validators=[validate_IntValue])
+    is_favourite = serializers.SerializerMethodField(read_only=True)
     
     # online = serializers.BooleanField(source="is_online",read_only=True)
     # premium = serializers.BooleanField(source="is_premium",read_only=True)
@@ -120,10 +95,7 @@ class ListingSerializer(serializers.ModelSerializer):
             "transmission",
             "transmission_detail",
             "description",
-            "province",
-            "province_detail",
-            "city",
-            "city_detail",
+            "is_favourite",
             "is_online",
             "is_premium",
             "is_sold",
@@ -136,17 +108,10 @@ class ListingSerializer(serializers.ModelSerializer):
     def validate(self, data):
         brand = data.get("brand", getattr(self.instance, "brand", None))
         model = data.get("model", getattr(self.instance, "model", None))
-        province = data.get("province", getattr(self.instance, "province", None))
-        city = data.get("city", getattr(self.instance, "city", None))
-        
  
         if brand and model and model.connected_brand_id != brand.id:
             raise serializers.ValidationError(
                 {"model": "Selected model does not belong to the selected brand."}
-            )
-        if province and city and city.province_id != province.id:
-            raise serializers.ValidationError(
-                {"location": "Selected city does not belong to the selected province."}
             )
 
         return data
@@ -157,6 +122,15 @@ class ListingSerializer(serializers.ModelSerializer):
             return None
         return reverse("listing-detail",kwargs={"pk": obj.pk},request=req)
     
+    def get_is_favourite(self,obj):
+        req = self.context.get("request")
+        
+        if not req.user.is_authenticated: 
+            return False
+        
+        return req.user.favourite_listings.filter(id=obj.id).exists()
+
+        
     def create(self,validated_data):
         price_history = validated_data.pop("price_history",None)
         
