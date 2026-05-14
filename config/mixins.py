@@ -8,7 +8,9 @@ class VehicleDataPermission:
 
 class ListingPermission:
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    
+
+class StaffPermission:
+    permission_classes = [permissions.IsAdminUser]
 # class DetailListingPermission:
 #     permission_classes = [permissions.IsAuthenticated]
     

@@ -4,10 +4,10 @@ import certifi
 from django.conf import settings
 from rest_framework import generics
 from rest_framework.parsers import FormParser, MultiPartParser
-from config.mixins import ListingPermission
+from config.mixins import ListingPermission, StaffPermission
 from rest_framework import filters
 from .models import Image, Listing
-from .serializers import ListingImageCreateSerializer, ListingSerializer
+from .serializers import ListingImageCreateSerializer, ListingSerializer, ListingControlSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ListingFilter
 from rest_framework.exceptions import PermissionDenied
@@ -37,7 +37,7 @@ class ListingCreateAndList(
 class ListingDetailUpdateDelete(
     # ListingPermission,
     generics.RetrieveUpdateDestroyAPIView):
-    queryset = Listing.objects.not_hidden()
+    queryset = Listing.objects.online()
     serializer_class = ListingSerializer
     
     def perform_update(self, serializer):
@@ -58,6 +58,18 @@ class ListingDetailUpdateDelete(
 
         instance.delete()
         
+class ListingControlListCreateView(
+    # StaffPermission,
+    generics.ListCreateAPIView):
+    queryset = Listing.objects.offline()
+    serializer_class = ListingControlSerializer
+    
+    
+class ListingControlDetailView(
+    # StaffPermission,
+    generics.RetrieveUpdateDestroyAPIView):
+    queryset = Listing.objects.offline()
+    serializer_class = ListingControlSerializer
 
 class FavouriteListingUpdate(
     ListingPermission,

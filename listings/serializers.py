@@ -58,7 +58,7 @@ class ListingSerializer(serializers.ModelSerializer):
     transmission_detail = CarTransmissionTypeSerializer(source="transmission", read_only=True)
     body_type_detail = CarBodyTypeSerializer(source="body_type", read_only=True)
     fuel_detail = CarFuelTypeSerializer(source="fuel", read_only=True)
-    price_history = PriceHistorySerializer(many=True)
+    price_history = PriceHistorySerializer(many=True,read_only=True)
     images = ListingImageSerializer(many=True,read_only=True)
 
     price = serializers.IntegerField(min_value=0)
@@ -102,6 +102,14 @@ class ListingSerializer(serializers.ModelSerializer):
             "hidden",
             "images",
             ]
+        read_only_fields = [
+            "publish_date",
+            "owner",
+            "images",
+            "price_history",
+            "is_favourite",
+            "is_online",
+        ]
     
     
 
@@ -136,3 +144,10 @@ class ListingSerializer(serializers.ModelSerializer):
         
         listing = Listing.objects.create(**validated_data)
         return listing
+    
+
+class ListingControlSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Listing
+        fields = ["id","is_online","is_premium"] 
+        read_only_fields = ["id"]

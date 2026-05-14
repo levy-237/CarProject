@@ -11,6 +11,9 @@ class ListingsManager(models.Manager):
     def online(self):
         return self.filter(is_online=True).order_by("-is_premium","-publish_date")
     
+    def offline(self):
+        return self.filter(is_online=False).order_by("-is_premium","-publish_date")
+    
     def premium(self):
         return self.filter(is_premium=True)
     

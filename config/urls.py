@@ -11,6 +11,7 @@ class ApiRootView(APIView):
         return Response(
             {
                 "listings": reverse("listing-list", request=request),
+                "listings_control": reverse("listing-control", request=request),
                 "users": reverse("user-list", request=request),
                 "images": reverse("listing-image-create", request=request),
                 # temporary
