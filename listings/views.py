@@ -16,7 +16,7 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from .models import PriceHistory
 from .uploadcare import get_uploadcare_client,create_uploadcare_image,destroy_uploadcare_image
-
+from common.mail_services import send_email
 
 
 class ListingCreateAndList(
@@ -30,6 +30,8 @@ class ListingCreateAndList(
     
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+        # change to admin
+        send_email(to_name="Support", to_email="levanilominashvili23@gmail.com", subject="New Listing Created", text="A new listing has been created.")
 
     
 
@@ -60,16 +62,25 @@ class ListingDetailUpdateDelete(
         
 class ListingControlListCreateView(
     # StaffPermission,
-    generics.ListCreateAPIView):
+    generics.ListAPIView):
     queryset = Listing.objects.offline()
     serializer_class = ListingControlSerializer
-    
     
 class ListingControlDetailView(
     # StaffPermission,
     generics.RetrieveUpdateDestroyAPIView):
     queryset = Listing.objects.offline()
     serializer_class = ListingControlSerializer
+
+    def perform_update(self, serializer):
+        listing = serializer.instance
+        owner = listing.owner
+        
+
+        serializer.save()
+        if serializer.validated_data.get("is_online"):       
+            # to the user  
+            send_email(to_name=owner.username, to_email=owner.email, subject="Listing Online", text="A listing has been taken online.")
 
 class FavouriteListingUpdate(
     ListingPermission,
@@ -133,23 +144,15 @@ class RecommendedListings(generics.ListAPIView):
             return queryset.none()
 
         rec_power = list(selected_listings.values_list("power", flat=True))
-        rec_trans = selected_listings.values_list("transmission", flat=True).distinct()
         rec_body = selected_listings.values_list("body_type", flat=True).distinct()
-        rec_fuel = selected_listings.values_list("fuel", flat=True).distinct()
 
         min_power = min(rec_power)
 
         queryset = queryset.exclude(id__in=listing_ids)
         queryset = queryset.filter(power__gte=min_power)
 
-        if rec_trans:
-            queryset = queryset.filter(transmission__in=rec_trans)
-
         if rec_body:
             queryset = queryset.filter(body_type__in=rec_body)
-
-        if rec_fuel:
-            queryset = queryset.filter(fuel__in=rec_fuel)
 
         return queryset
 

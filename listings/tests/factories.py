@@ -8,9 +8,8 @@ from cars.tests.factories import (
     CarBodyTypeFactory,
     CarBrandFactory,
     CarConditionFactory,
-    CarFuelTypeFactory,
+    CarDriveTrainFactory,
     CarModelFactory,
-    CarTransmissionTypeFactory,
 )
 
 class ListingFactory(DjangoModelFactory):
@@ -22,8 +21,7 @@ class ListingFactory(DjangoModelFactory):
     model = factory.SubFactory(CarModelFactory, connected_brand=factory.SelfAttribute("..brand"))
     body_type = factory.SubFactory(CarBodyTypeFactory)
     condition = factory.SubFactory(CarConditionFactory)
-    fuel = factory.SubFactory(CarFuelTypeFactory)
-    transmission = factory.SubFactory(CarTransmissionTypeFactory)
+    drivetrain = factory.SubFactory(CarDriveTrainFactory)
     makeyear = date(2020, 1, 1)
     price = 25000
     mileage = 10000

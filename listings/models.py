@@ -1,5 +1,5 @@
 from django.db import models
-from cars.models import CarBrand,CarBodyType,CarModel,CarCondition,CarFuelType,CarTransmissionType
+from cars.models import CarBrand,CarBodyType,CarModel,CarCondition,CarDriveTrain,CarModelTrim
 from users.models import User
 
 
@@ -35,14 +35,20 @@ class Listing(models.Model):
     title = models.TextField(max_length=2000)
     brand = models.ForeignKey(CarBrand, on_delete=models.PROTECT)
     model = models.ForeignKey(CarModel, on_delete=models.PROTECT)
+    model_trim = models.ForeignKey(CarModelTrim, on_delete=models.PROTECT,null=True,blank=True)
     makeyear = models.DateField()
     price = models.IntegerField()
     body_type = models.ForeignKey(CarBodyType, on_delete=models.PROTECT)
     mileage = models.IntegerField()
     condition = models.ForeignKey(CarCondition, on_delete=models.PROTECT)
+    drivetrain = models.ForeignKey(CarDriveTrain, on_delete=models.PROTECT,null=True,blank=True)
     power = models.IntegerField()
-    fuel = models.ForeignKey(CarFuelType, on_delete=models.PROTECT)
-    transmission = models.ForeignKey(CarTransmissionType, on_delete=models.PROTECT)
+    battery_size = models.IntegerField(null=True,blank=True)
+    factory_range = models.IntegerField(null=True,blank=True)
+    real_summer_range = models.IntegerField(null=True,blank=True)
+    real_winter_range = models.IntegerField(null=True,blank=True)
+    garantie = models.BooleanField(default=False)
+    pickerl = models.BooleanField(default=False)
     description = models.TextField(max_length=2000)
     is_online = models.BooleanField(default=False)
     is_premium = models.BooleanField(default=False)

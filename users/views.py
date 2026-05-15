@@ -23,6 +23,7 @@ class UserCreateView(generics.CreateAPIView):
             picture=uploadcare_file.cdn_url,
             uploadcare_uuid=uploadcare_file.uuid
         )
+        # to user
         send_email(name, email, "Levanchiko says Hi!!!, Thanks for signing up on our beatiful website", "Thanks for signing up on our beatiful website!, i hope you enjoy in!")
         
         
@@ -80,7 +81,7 @@ class SavedSearchDetailUpdateDelete(
     serializer_class = SavedSeachSerializer
     
     def perform_update(self,serializer):
-        savedSearch = serializer.intance
+        savedSearch = serializer.instance
         
         if savedSearch.owner != self.request.user and not self.request.user.is_staff:
             raise PermissionDenied("you are not owner of this saved search")

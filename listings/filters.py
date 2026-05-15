@@ -7,9 +7,9 @@ from cars.models import (
     CarBodyType,
     CarBrand,
     CarCondition,
-    CarFuelType,
+    CarDriveTrain,
     CarModel,
-    CarTransmissionType,
+    CarModelTrim
 )
 from .models import Listing
 from users.models import City, Province
@@ -24,26 +24,49 @@ class ListingFilter(django_filters.FilterSet):
     model = django_filters.ModelMultipleChoiceFilter(
         field_name="model", queryset=CarModel.objects.all()
     )
+    modeltrim = django_filters.ModelMultipleChoiceFilter(
+        field_name="model_trim", queryset=CarModelTrim.objects.all()
+    )
     condition = django_filters.ModelMultipleChoiceFilter(
         field_name="condition", queryset=CarCondition.objects.all()
     )
-    fuel = django_filters.ModelMultipleChoiceFilter(
-        field_name="fuel", queryset=CarFuelType.objects.all()
-    )
-    transmission = django_filters.ModelMultipleChoiceFilter(
-        field_name="transmission", queryset=CarTransmissionType.objects.all()
+    drivetrain = django_filters.ModelMultipleChoiceFilter(
+        field_name="drivetrain", queryset=CarDriveTrain.objects.all()
     )
     city = django_filters.ModelMultipleChoiceFilter(
-        field_name="owner__city", queryset=City.objects.all()
+        field_name="owner__city", queryset=Listing.objects.all().values_list("owner__city", flat=True).distinct()
     )
     province = django_filters.ModelMultipleChoiceFilter(
-        field_name="owner__province", queryset=Province.objects.all()
+        field_name="owner__province", queryset=Listing.objects.all().values_list("owner__province", flat=True).distinct()
     )
     
     minprice = django_filters.NumberFilter(field_name="price", lookup_expr="gte")
     maxprice = django_filters.NumberFilter(field_name="price", lookup_expr="lte")
+    
     minmileage = django_filters.NumberFilter(field_name="mileage", lookup_expr="gte")
     maxmileage = django_filters.NumberFilter(field_name="mileage", lookup_expr="lte")
+    
+    minpower = django_filters.NumberFilter(field_name="power", lookup_expr="gte")
+    maxpower = django_filters.NumberFilter(field_name="power", lookup_expr="lte")
+    
+    minbattery = django_filters.NumberFilter(field_name="battery_size", lookup_expr="gte")
+    maxbattery = django_filters.NumberFilter(field_name="battery_size", lookup_expr="lte")
+    
+    minfactoryrange = django_filters.NumberFilter(field_name="factory_range", lookup_expr="gte")
+    maxfactoryrange = django_filters.NumberFilter(field_name="factory_range", lookup_expr="lte")
+    
+    minsummerrange = django_filters.NumberFilter(field_name="real_summer_range", lookup_expr="gte")
+    maxsummerrange = django_filters.NumberFilter(field_name="real_summer_range", lookup_expr="lte")
+    
+    minwinterrange = django_filters.NumberFilter(field_name="real_winter_range", lookup_expr="gte")
+    maxwinterrange = django_filters.NumberFilter(field_name="real_winter_range", lookup_expr="lte")
+    
+    minaccharging = django_filters.NumberFilter(field_name="model_trim__max_ac_charge_kw", lookup_expr="gte")
+    mindccharging = django_filters.NumberFilter(field_name="model_trim__max_dc_charge_kw", lookup_expr="gte")
+    minfastcharginmin = django_filters.NumberFilter(field_name="model_trim__twenty_to_eighty_charge_min", lookup_expr="gte")
+    
+    garantie = django_filters.BooleanFilter(field_name="garantie")
+    pickerl = django_filters.BooleanFilter(field_name="pickerl")
 
     mindate = django_filters.NumberFilter(method="filter_min_year")
     maxdate = django_filters.NumberFilter(method="filter_max_year")
@@ -67,9 +90,7 @@ class ListingFilter(django_filters.FilterSet):
               Q(body_type__name__icontains=value) |
               Q(brand__name__icontains=value) |
               Q(model__name__icontains=value) |
-              Q(province__name__icontains=value) |
-              Q(city__name__icontains=value) |
-              Q(fuel__name__icontains=value) | 
+              Q(drivetrain__name__icontains=value) |
               Q(owner__city__name__icontains=value) |
               Q(owner__province__name__icontains=value)
               ).annotate(

@@ -3,8 +3,8 @@ from listings.models import Listing
 from users.models import User
 from listings.tests.factories import ListingFactory
 from users.tests.factories import UserFactory
-from cars.tests.factories import CarBrandFactory, CarModelFactory, CarBodyTypeFactory, CarConditionFactory, CarFuelTypeFactory, CarTransmissionTypeFactory
-from cars.models import CarBrand, CarModel, CarBodyType, CarCondition, CarFuelType, CarTransmissionType
+from cars.tests.factories import CarBrandFactory, CarModelFactory, CarBodyTypeFactory, CarConditionFactory, CarDriveTrainFactory
+from cars.models import CarBrand, CarModel, CarBodyType, CarCondition, CarDriveTrain
 from datetime import date
 class ListingModelTests(TestCase):
     def setUp(self):
@@ -14,8 +14,7 @@ class ListingModelTests(TestCase):
         self.model = CarModelFactory(connected_brand=self.brand)
         self.body_type = CarBodyTypeFactory()
         self.condition = CarConditionFactory()
-        self.fuel = CarFuelTypeFactory()
-        self.transmission = CarTransmissionTypeFactory()
+        self.drivetrain = CarDriveTrainFactory()
         self.price = 25000
         self.mileage = 10000
         self.power = 100
@@ -28,9 +27,8 @@ class ListingModelTests(TestCase):
             model=self.model,
             body_type=self.body_type,
             condition=self.condition,
-            fuel=self.fuel,
+            drivetrain=self.drivetrain,
             makeyear=self.makeyear,
-            transmission=self.transmission,
             price=self.price,
             mileage=self.mileage,
             power=self.power,
@@ -44,9 +42,8 @@ class ListingModelTests(TestCase):
             model=self.model,
             body_type=self.body_type,
             condition=self.condition,
-            fuel=self.fuel,
+            drivetrain=self.drivetrain,
             makeyear=self.makeyear,
-            transmission=self.transmission,
             price=self.price,
             mileage=self.mileage,
             power=self.power,
@@ -65,8 +62,7 @@ class ListingModelTests(TestCase):
         self.assertEqual(self.listing.power, 100)
         self.assertEqual(self.listing.body_type, self.body_type)
         self.assertEqual(self.listing.condition, self.condition)
-        self.assertEqual(self.listing.fuel, self.fuel)
-        self.assertEqual(self.listing.transmission, self.transmission)
+        self.assertEqual(self.listing.drivetrain, self.drivetrain)
         self.assertEqual(self.listing.is_online, True)
         self.assertEqual(self.listing.is_premium, True)
         self.assertEqual(self.listing.hidden, False)

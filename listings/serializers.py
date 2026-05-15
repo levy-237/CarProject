@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 from .models import Image, Listing, PriceHistory
 from users.models import User
-from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,CarConditionSerializer,CarTransmissionTypeSerializer,CarBodyTypeSerializer,CarFuelTypeSerializer
+from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,CarConditionSerializer,CarDriveTrainSerializer,CarBodyTypeSerializer,CarModelTrimSerializer
 
 
 class ListingImageSerializer(serializers.ModelSerializer):
@@ -55,15 +55,18 @@ class ListingSerializer(serializers.ModelSerializer):
     brand_detail = CarBrandSimpleSerializer(source="brand", read_only=True)
     model_detail = CarModelSimpleSerializer(source="model", read_only=True)
     condition_detail = CarConditionSerializer(source="condition", read_only=True)
-    transmission_detail = CarTransmissionTypeSerializer(source="transmission", read_only=True)
+    drivetrain_detail = CarDriveTrainSerializer(source="drivetrain", read_only=True)
     body_type_detail = CarBodyTypeSerializer(source="body_type", read_only=True)
-    fuel_detail = CarFuelTypeSerializer(source="fuel", read_only=True)
+    model_trim_detail = CarModelTrimSerializer(source="model_trim",read_only=True)
     price_history = PriceHistorySerializer(many=True,read_only=True)
     images = ListingImageSerializer(many=True,read_only=True)
-
     price = serializers.IntegerField(min_value=0)
     mileage = serializers.IntegerField(validators=[validate_IntValue])
     power = serializers.IntegerField(validators=[validate_IntValue])
+    battery_size = serializers.IntegerField(validators=[validate_IntValue], required=False, allow_null=True)
+    factory_range = serializers.IntegerField(validators=[validate_IntValue], required=False, allow_null=True)
+    real_summer_range = serializers.IntegerField(validators=[validate_IntValue], required=False, allow_null=True)
+    real_winter_range = serializers.IntegerField(validators=[validate_IntValue], required=False, allow_null=True)
     is_favourite = serializers.SerializerMethodField(read_only=True)
     
     # online = serializers.BooleanField(source="is_online",read_only=True)
@@ -81,6 +84,8 @@ class ListingSerializer(serializers.ModelSerializer):
             "brand_detail",
             "model",
             "model_detail",
+            "model_trim",
+            "model_trim_detail",
             "makeyear",
             "price",
             "price_history",
@@ -89,11 +94,15 @@ class ListingSerializer(serializers.ModelSerializer):
             "mileage",
             "condition",
             "condition_detail",
+            "drivetrain",
+            "drivetrain_detail",
             "power",
-            "fuel",
-            "fuel_detail",
-            "transmission",
-            "transmission_detail",
+            "battery_size",
+            "factory_range",
+            "real_summer_range",
+            "real_winter_range",
+            "garantie",
+            "pickerl",
             "description",
             "is_favourite",
             "is_online",
@@ -116,11 +125,16 @@ class ListingSerializer(serializers.ModelSerializer):
     def validate(self, data):
         brand = data.get("brand", getattr(self.instance, "brand", None))
         model = data.get("model", getattr(self.instance, "model", None))
+        model_trim = data.get("model_trim",getattr(self.instance,"model_trim",None))
  
         if brand and model and model.connected_brand_id != brand.id:
             raise serializers.ValidationError(
                 {"model": "Selected model does not belong to the selected brand."}
             )
+        if model and model_trim and model_trim.connected_model_id != model.id:
+            raise serializers.ValidationError(
+                {"model": "Selected model does not belong to the selected brand."}
+            )          
 
         return data
     
