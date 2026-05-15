@@ -7,12 +7,12 @@ from .views import (
     CarBrandListCreate,
     CarConditionDetail,
     CarConditionListCreate,
-    CarFuelTypeDetail,
-    CarFuelTypeListCreate,
+    CarDriveTrainDetail,
+    CarDriveTrainListCreate,
     CarModelDetail,
     CarModelListCreate,
-    CarTransmissionTypeDetail,
-    CarTransmissionTypeListCreate,
+    CarModelTrimDetail,
+    CarModelTrimListCreate,
 )
 
 urlpatterns = [
@@ -22,14 +22,10 @@ urlpatterns = [
     path("brands/<int:pk>/", CarBrandDetail.as_view(), name="carbrand-detail"),
     path("models/", CarModelListCreate.as_view(), name="carmodel-list"),
     path("models/<int:pk>/", CarModelDetail.as_view(), name="carmodel-detail"),
+    path("trims/", CarModelTrimListCreate.as_view(), name="carmodeltrim-list"),
+    path("trims/<int:pk>/", CarModelTrimDetail.as_view(), name="carmodeltrim-detail"),
+    path("drive-trains/", CarDriveTrainListCreate.as_view(), name="cardrivetrain-list"),
+    path("drive-trains/<int:pk>/", CarDriveTrainDetail.as_view(), name="cardrivetrain-detail"),
     path("conditions/", CarConditionListCreate.as_view(), name="carcondition-list"),
     path("conditions/<int:pk>/", CarConditionDetail.as_view(), name="carcondition-detail"),
-    path("fuel-types/", CarFuelTypeListCreate.as_view(), name="carfueltype-list"),
-    path("fuel-types/<int:pk>/", CarFuelTypeDetail.as_view(), name="carfueltype-detail"),
-    path("transmission-types/", CarTransmissionTypeListCreate.as_view(), name="cartransmissiontype-list"),
-    path(
-        "transmission-types/<int:pk>/",
-        CarTransmissionTypeDetail.as_view(),
-        name="cartransmissiontype-detail",
-    ),
 ]

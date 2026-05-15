@@ -12,22 +12,25 @@ class CarBrand(models.Model):
 
 class CarModel(models.Model):
     name=models.CharField(max_length=100)
-    connected_brand = models.ForeignKey(CarBrand,on_delete=models.SET_NULL,null=True,blank=True,related_name="models")
+    connected_brand = models.ForeignKey(CarBrand,on_delete=models.CASCADE,related_name="models")
     def __str__(self):
         return self.name
+    
+class CarModelTrim(models.Model):
+    name = models.CharField(max_length=100)
+    connected_model = models.ForeignKey(CarModel,on_delete=models.CASCADE,related_name="trims")
+    max_ac_charge_kw = models.FloatField(null=True, blank=True)
+    max_dc_charge_kw = models.FloatField(null=True, blank=True)
+    twenty_to_eighty_charge_min = models.IntegerField(null=True, blank=True)
+    
+    
+class CarDriveTrain(models.Model):
+    name=models.CharField(max_length=100)
+    def __str__(self):
+        return self.name
+
 
 class CarCondition(models.Model):
     name=models.CharField(max_length=100)
     def __str__(self):
         return self.name
-    
-class CarFuelType(models.Model):
-    name=models.CharField(max_length=100)
-    def __str__(self):
-        return self.name
-    
-class CarTransmissionType(models.Model):
-    name=models.CharField(max_length=100)
-    def __str__(self):
-        return self.name
-    

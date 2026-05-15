@@ -5,9 +5,8 @@ from cars.models import (
     CarBodyType,
     CarBrand,
     CarCondition,
-    CarFuelType,
+    CarDriveTrain,
     CarModel,
-    CarTransmissionType,
 )
 
 
@@ -40,15 +39,8 @@ class CarConditionFactory(DjangoModelFactory):
     name = factory.Sequence(lambda n: f"Condition {n}")
 
 
-class CarFuelTypeFactory(DjangoModelFactory):
+class CarDriveTrainFactory(DjangoModelFactory):
     class Meta:
-        model = CarFuelType
+        model = CarDriveTrain
 
-    name = factory.Sequence(lambda n: f"Fuel {n}")
-
-
-class CarTransmissionTypeFactory(DjangoModelFactory):
-    class Meta:
-        model = CarTransmissionType
-
-    name = factory.Sequence(lambda n: f"Transmission {n}")
+    name = factory.Sequence(lambda n: f"Drive Train {n}")
