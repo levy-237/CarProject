@@ -1,13 +1,15 @@
 
 from django.urls import path
 
-from .views import ListingCreateAndList, ListingDetailUpdateDelete, ListingImageCreateView, ListingImageDestroyView, ListingByOwnerList, FavouriteListingUpdate, FavouriteListView, CompareListings,RecommendedListings, ListingControlListCreateView, ListingControlDetailView
+from .views import ListingCreateAndList, ListingDetailUpdateDelete, ListingImageCreateView, ListingImageDestroyView, ListingByOwnerList, FavouriteListingUpdate, FavouriteListView, CompareListings,RecommendedListings, ListingControlListView, ListingControlDetailView, ListingManagementListView, ListingManagementDetailUpdateDelete
 
 urlpatterns = [
     path("", ListingCreateAndList.as_view(), name="listing-list"),
     path("<int:pk>/",ListingDetailUpdateDelete.as_view(), name="listing-detail"),
-    path("control/", ListingControlListCreateView.as_view(), name="listing-control"),
+    path("control/", ListingControlListView.as_view(), name="listing-control"),
     path("control/<int:pk>/", ListingControlDetailView.as_view(), name="listing-control-detail"),
+    path("management/", ListingManagementListView.as_view(), name="listing-management"),
+    path("management/<int:pk>/", ListingManagementDetailUpdateDelete.as_view(), name="listing-management-detail"),
     path("my/", ListingByOwnerList.as_view(), name="listing-by-owner-list"),
     path("update-favourite/<int:pk>/", FavouriteListingUpdate.as_view(), name="favourite-list-update"),
     path("favourites/", FavouriteListView.as_view(), name="favourite-list"),

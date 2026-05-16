@@ -55,7 +55,6 @@ class ListingSerializer(serializers.ModelSerializer):
     brand_detail = CarBrandSimpleSerializer(source="brand", read_only=True)
     model_detail = CarModelSimpleSerializer(source="model", read_only=True)
     condition_detail = CarConditionSerializer(source="condition", read_only=True)
-    drivetrain_detail = CarDriveTrainSerializer(source="drivetrain", read_only=True)
     body_type_detail = CarBodyTypeSerializer(source="body_type", read_only=True)
     model_trim_detail = CarModelTrimSerializer(source="model_trim",read_only=True)
     price_history = PriceHistorySerializer(many=True,read_only=True)
@@ -63,8 +62,6 @@ class ListingSerializer(serializers.ModelSerializer):
     price = serializers.IntegerField(min_value=0)
     mileage = serializers.IntegerField(validators=[validate_IntValue])
     power = serializers.IntegerField(validators=[validate_IntValue])
-    battery_size = serializers.IntegerField(validators=[validate_IntValue], required=False, allow_null=True)
-    factory_range = serializers.IntegerField(validators=[validate_IntValue], required=False, allow_null=True)
     real_summer_range = serializers.IntegerField(validators=[validate_IntValue], required=False, allow_null=True)
     real_winter_range = serializers.IntegerField(validators=[validate_IntValue], required=False, allow_null=True)
     is_favourite = serializers.SerializerMethodField(read_only=True)
@@ -94,11 +91,7 @@ class ListingSerializer(serializers.ModelSerializer):
             "mileage",
             "condition",
             "condition_detail",
-            "drivetrain",
-            "drivetrain_detail",
             "power",
-            "battery_size",
-            "factory_range",
             "real_summer_range",
             "real_winter_range",
             "garantie",
@@ -108,7 +101,8 @@ class ListingSerializer(serializers.ModelSerializer):
             "is_online",
             "is_premium",
             "is_sold",
-            "hidden",
+            "is_under_review",
+            "is_reserved",
             "images",
             ]
         read_only_fields = [
@@ -117,7 +111,9 @@ class ListingSerializer(serializers.ModelSerializer):
             "images",
             "price_history",
             "is_favourite",
+            "is_under_review",
             "is_online",
+            "is_premium"
         ]
     
     
@@ -163,5 +159,12 @@ class ListingSerializer(serializers.ModelSerializer):
 class ListingControlSerializer(serializers.ModelSerializer):
     class Meta:
         model = Listing
-        fields = ["id","is_online","is_premium"] 
+        fields = ["id","title","is_online","is_premium","is_under_review"] 
+        read_only_fields = ["id"]
+        
+        
+class ListingManagementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Listing
+        fields = "__all__"
         read_only_fields = ["id"]

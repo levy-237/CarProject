@@ -27,13 +27,11 @@ class CarModelTrimSimpleSerializer(serializers.ModelSerializer):
                   ]
 
 class CarModelSimpleSerializer(serializers.ModelSerializer):
-    trims = CarModelTrimSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         model = CarModel
         fields = ["id",
                   "name",
-                  "trims"
                   ]
 
 
@@ -56,23 +54,30 @@ class CarBrandSerializer(serializers.ModelSerializer):
  
 class CarModelSerializer(serializers.ModelSerializer):
     brand_detail = CarBrandSimpleSerializer(source="connected_brand", read_only=True)
+    trims = CarModelTrimSimpleSerializer(many=True, read_only=True)
+
     class Meta:
         model = CarModel
         fields = ["id",
                   "name",
-                  "brand_detail",          
+                  "brand_detail",
+                  "trims"          
                   ]
 
 
 class CarModelTrimSerializer(serializers.ModelSerializer):
     connected_model_name = serializers.CharField(source="connected_model.name", read_only=True)
-
+    drivetrain_name = serializers.CharField(source="drivetrain.name",read_only=True)
     class Meta:
         model = CarModelTrim
         fields = ["id",
                   "name",
                   "connected_model",
                   "connected_model_name",
+                  "drivetrain_name",
+                  "battery_size",
+                  "drivetrain",
+                  "factory_range",
                   "max_ac_charge_kw",
                   "max_dc_charge_kw",
                   "twenty_to_eighty_charge_min",

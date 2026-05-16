@@ -1,5 +1,5 @@
 from django.db import models
-from cars.models import CarBrand,CarBodyType,CarModel,CarCondition,CarDriveTrain,CarModelTrim
+from cars.models import CarBrand,CarBodyType,CarModel,CarCondition,CarModelTrim
 from users.models import User
 
 
@@ -9,10 +9,10 @@ def listing_image_upload_to(instance, filename):
 
 class ListingsManager(models.Manager):
     def online(self):
-        return self.filter(is_online=True).order_by("-is_premium","-publish_date")
+        return self.filter(is_online=True, is_under_review=False).order_by("-is_premium","-publish_date")
     
     def offline(self):
-        return self.filter(is_online=False).order_by("-is_premium","-publish_date")
+        return self.filter(is_online=False, is_under_review=False).order_by("-is_premium","-publish_date")
     
     def premium(self):
         return self.filter(is_premium=True)
@@ -20,11 +20,11 @@ class ListingsManager(models.Manager):
     def by_owner(self, user):
         return self.filter(owner=user)
     
-    def not_hidden(self):
-        return self.filter(hidden=False)
+    def deactivated(self):
+        return self.filter(deactivated=True)
     
-    def hidden(self):
-        return self.filter(hidden=True)
+    def is_under_review(self):
+        return self.filter(is_under_review=True)
 
     
 
@@ -41,10 +41,7 @@ class Listing(models.Model):
     body_type = models.ForeignKey(CarBodyType, on_delete=models.PROTECT)
     mileage = models.IntegerField()
     condition = models.ForeignKey(CarCondition, on_delete=models.PROTECT)
-    drivetrain = models.ForeignKey(CarDriveTrain, on_delete=models.PROTECT,null=True,blank=True)
     power = models.IntegerField()
-    battery_size = models.IntegerField(null=True,blank=True)
-    factory_range = models.IntegerField(null=True,blank=True)
     real_summer_range = models.IntegerField(null=True,blank=True)
     real_winter_range = models.IntegerField(null=True,blank=True)
     garantie = models.BooleanField(default=False)
@@ -53,7 +50,8 @@ class Listing(models.Model):
     is_online = models.BooleanField(default=False)
     is_premium = models.BooleanField(default=False)
     is_sold = models.BooleanField(default=False)
-    hidden = models.BooleanField(default=True)
+    is_reserved = models.BooleanField(default=False)
+    is_under_review = models.BooleanField(default=True)
     
     objects = ListingsManager()
 

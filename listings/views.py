@@ -7,7 +7,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from config.mixins import ListingPermission, StaffPermission
 from rest_framework import filters
 from .models import Image, Listing
-from .serializers import ListingImageCreateSerializer, ListingSerializer, ListingControlSerializer
+from .serializers import ListingImageCreateSerializer, ListingSerializer, ListingControlSerializer,ListingManagementSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ListingFilter
 from rest_framework.exceptions import PermissionDenied
@@ -60,28 +60,52 @@ class ListingDetailUpdateDelete(
 
         instance.delete()
         
-class ListingControlListCreateView(
+        
+# control view for user submited listings that is under review
+class ListingControlListView(
     # StaffPermission,
     generics.ListAPIView):
-    queryset = Listing.objects.offline()
+    queryset = Listing.objects.is_under_review()
     serializer_class = ListingControlSerializer
     
 class ListingControlDetailView(
     # StaffPermission,
     generics.RetrieveUpdateDestroyAPIView):
-    queryset = Listing.objects.offline()
+    queryset = Listing.objects.is_under_review()
     serializer_class = ListingControlSerializer
 
     def perform_update(self, serializer):
         listing = serializer.instance
         owner = listing.owner
+        is_online = serializer.validated_data.get("is_online")
+        is_under_review = serializer.validated_data.get("is_under_review")
+        
         
 
         serializer.save()
-        if serializer.validated_data.get("is_online"):       
+        if is_online and is_under_review:       
             # to the user  
             send_email(to_name=owner.username, to_email=owner.email, subject="Listing Online", text="A listing has been taken online.")
 
+
+# management for listings any listings
+class ListingManagementListView(
+    # StaffPermission,
+    generics.ListCreateAPIView):
+    queryset = Listing.objects.all()
+    serializer_class = ListingManagementSerializer
+
+
+class ListingManagementDetailUpdateDelete(
+    # StaffPermission,
+    generics.RetrieveUpdateDestroyAPIView):
+    queryset = Listing.objects.all()
+    serializer_class = ListingManagementSerializer
+
+
+
+
+ 
 class FavouriteListingUpdate(
     ListingPermission,
     generics.CreateAPIView):
