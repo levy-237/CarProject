@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, savedSearch, City, Province
+from .models import User, savedSearch, City, Province, ZipCode
 
 
 class CitySimpleSerializer(serializers.ModelSerializer):
@@ -25,7 +25,12 @@ class CitySerializer(serializers.ModelSerializer):
     province_detail = ProvinceSimpleSerializer(source="province",read_only=True)
     class Meta:
         model = City
-        fields =["id","name","province","province_detail"]
+        fields =["id","name","province","province_detail","zipcodes"]
+
+class ZipcodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ZipCode
+        fields =["id","created_at","code","cities"]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -35,7 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
     city_detail = CitySimpleSerializer(source="city",read_only=True)
     class Meta:
         model = User
-        fields = ['id', 'username',"first_name","last_name", 'email', 'phone', 'password',"picture_file","picture", "uploadcare_uuid", "favourite_listings","saved_search","province","city","province_detail","city_detail"]
+        fields = ['id', 'username',"first_name","last_name", 'email', 'phone', 'password',"picture_file","picture", "uploadcare_uuid", "favourite_listings","saved_search","province","city","streetname_number","province_detail","city_detail"]
         read_only_fields = ["picture", "uploadcare_uuid", "favourite_listings","saved_search","province_detail","city_detail"]        
         
         

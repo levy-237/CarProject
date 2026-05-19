@@ -44,6 +44,7 @@ class Listing(models.Model):
     power = models.IntegerField()
     real_summer_range = models.IntegerField(null=True,blank=True)
     real_winter_range = models.IntegerField(null=True,blank=True)
+    heat_pump = models.BooleanField(default=True)
     garantie = models.BooleanField(default=False)
     pickerl = models.BooleanField(default=False)
     description = models.TextField(max_length=2000)

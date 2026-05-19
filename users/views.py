@@ -1,10 +1,11 @@
 from rest_framework import generics
-from .models import User, savedSearch, Province, City
-from .serializers import UserSerializer, SavedSeachSerializer, ProvinceSerializer, CitySerializer
+from .models import User, savedSearch, Province, City,ZipCode
+from .serializers import UserSerializer, SavedSeachSerializer, ProvinceSerializer, CitySerializer, ZipcodeSerializer
 from config.mixins import UserPermission
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from listings.uploadcare import get_uploadcare_client,create_uploadcare_image,destroy_uploadcare_image
 from common.mail_services import send_email
+from urllib.parse import parse_qs
 
 class UserCreateView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -80,6 +81,14 @@ class SavedSearchDetailUpdateDelete(
     queryset = savedSearch.objects.all()
     serializer_class = SavedSeachSerializer
     
+    
+    def get_object(self):
+        obj = super().get_object()  
+        params = parse_qs(obj.saved_url)
+        print(params)
+
+        return obj
+    
     def perform_update(self,serializer):
         savedSearch = serializer.instance
         
@@ -89,13 +98,11 @@ class SavedSearchDetailUpdateDelete(
         serializer.save()
             
         
-    def perform_destroy(self,serializer):
-        savedSearch = serializer.intance
-        
-        if savedSearch.owner != self.request.user and not self.request.user.is_staff:
-            raise PermissionDenied("you are not owner of this saved search")
-        
-        serializer.delete()
+    def perform_destroy(self, instance):
+        if instance.owner != self.request.user and not self.request.user.is_staff:
+           raise PermissionDenied("You are not owner of this saved search")
+
+        instance.delete()
             
         
     
@@ -124,4 +131,16 @@ class CityDetailUpdateDestroy(
       generics.RetrieveUpdateDestroyAPIView):
     queryset = City.objects.all()
     serializer_class = CitySerializer
+
+class ZipCodeList(
+    # ListingPermission,
+    generics.ListCreateAPIView):
+    queryset = ZipCode.objects.all()
+    serializer_class = ZipcodeSerializer
+    
+class ZipCodeDetailUpdateDestroy(
+    # ListingPermission,
+      generics.RetrieveUpdateDestroyAPIView):
+    queryset = ZipCode.objects.all()
+    serializer_class = ZipcodeSerializer
     

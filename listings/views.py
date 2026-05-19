@@ -17,7 +17,7 @@ from rest_framework.exceptions import ValidationError
 from .models import PriceHistory
 from .uploadcare import get_uploadcare_client,create_uploadcare_image,destroy_uploadcare_image
 from common.mail_services import send_email
-
+from .saved_search import listing_matches_any_saved_search
 
 class ListingCreateAndList(
     # ListingPermission,
@@ -83,9 +83,16 @@ class ListingControlDetailView(
         
 
         serializer.save()
-        if is_online and is_under_review:       
-            # to the user  
+        if is_online:
+            users_with_alerts = listing_matches_any_saved_search(listing)
+            # to the owner  
             send_email(to_name=owner.username, to_email=owner.email, subject="Listing Online", text="A listing has been taken online.")
+            # checking saved searches
+            if(users_with_alerts and len(users_with_alerts) > 0):
+                for saved_search in users_with_alerts:
+                    send_email(to_name=saved_search.owner.username, to_email=saved_search.owner.email, subject=f"new listing for saved search: {saved_search.name}", text=f"There is new listing online that matches your search agent! {saved_search.name}")
+                    print(f"sucessfully sent mail to {saved_search.owner.email}")
+                    
 
 
 # management for listings any listings

@@ -3,7 +3,7 @@ from django.urls import include, path
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from users.views import ProvinceList,ProvinceDetailUpdateDestroy,CityList,CityDetailUpdateDestroy
+from users.views import ProvinceList,ProvinceDetailUpdateDestroy,CityList,CityDetailUpdateDestroy,ZipCodeList,ZipCodeDetailUpdateDestroy
 
 class ApiRootView(APIView):
     def get(self, request, *args, **kwargs):
@@ -17,7 +17,8 @@ class ApiRootView(APIView):
                 "locations": {
                     "provinces": reverse("province-list", request=request),
                     "cities": reverse("city-list", request=request),
-                },
+                    "zipcodes": reverse("zip-list", request=request),
+                    },
                 "cars": {
                     "body_types": reverse("carbodytype-list", request=request),
                     "brands": reverse("carbrand-list", request=request),
@@ -45,5 +46,7 @@ urlpatterns = [
     path("api/province/<int:pk>/", ProvinceDetailUpdateDestroy.as_view(), name="province-detail"),
     path("api/city/", CityList.as_view(), name="city-list"),
     path("api/city/<int:pk>/", CityDetailUpdateDestroy.as_view(), name="city-detail"),
+    path("api/zip/", ZipCodeList.as_view(), name="zip-list"),
+    path("api/zip/<int:pk>/", ZipCodeDetailUpdateDestroy.as_view(), name="zip-detail"),
 
 ]

@@ -94,6 +94,7 @@ class ListingSerializer(serializers.ModelSerializer):
             "power",
             "real_summer_range",
             "real_winter_range",
+            "heat_pump",
             "garantie",
             "pickerl",
             "description",
