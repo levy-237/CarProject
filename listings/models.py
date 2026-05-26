@@ -67,11 +67,11 @@ class Image(models.Model):
         related_name="images",
     )
     image = models.URLField(max_length=500)
-    uploadcare_uuid = models.CharField(max_length=36, blank=True, db_index=True)
+    storage_key = models.CharField(max_length=255, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Image #{self.pk} for listing #{self.listing_id} ({self.uploadcare_uuid})"
+        return f"Image #{self.pk} for listing #{self.listing_id} ({self.storage_key})"
     
     
 class PriceHistory(models.Model):

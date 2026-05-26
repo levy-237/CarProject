@@ -11,12 +11,13 @@ djangorestframework_simplejwt==5.5.1
 factory_boy==3.3.3
 Faker==40.15.0
 idna==3.13
+imagekitio==5.4.0
+mailjet-rest==1.6.0
 pillow==12.1.1
 pyasn1==0.6.3
 pyasn1_modules==0.4.2
 pycparser==3.0
 PyJWT==2.12.1
-pyuploadcare==6.2.1
 python-dotenv==1.2.2
 requests==2.33.1
 sqlparse==0.5.5

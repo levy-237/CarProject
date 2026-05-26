@@ -3,6 +3,7 @@ from django.urls import include, path
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from common.views import TestEmailView
 from users.views import ProvinceList,ProvinceDetailUpdateDestroy,CityList,CityDetailUpdateDestroy,ZipCodeList,ZipCodeDetailUpdateDestroy
 
 class ApiRootView(APIView):
@@ -38,6 +39,7 @@ class ApiRootView(APIView):
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", ApiRootView.as_view(), name="api-root"),
+    path("api/test-email/", TestEmailView.as_view(), name="test-email"),
     path("api/listings/", include("listings.urls")),
     path("api/users/", include("users.urls")),
     path("api/cars/", include("cars.urls")),

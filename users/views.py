@@ -3,7 +3,7 @@ from .models import User, savedSearch, Province, City,ZipCode
 from .serializers import UserSerializer, SavedSeachSerializer, ProvinceSerializer, CitySerializer, ZipcodeSerializer
 from config.mixins import UserPermission
 from rest_framework.exceptions import ValidationError, PermissionDenied
-from listings.uploadcare import get_uploadcare_client,create_uploadcare_image,destroy_uploadcare_image
+from listings.imagekit import create_image, destroy_image
 from common.mail_services import send_email
 from urllib.parse import parse_qs
 
@@ -19,10 +19,10 @@ class UserCreateView(generics.CreateAPIView):
         if not image_file:
            return serializer.save()
         
-        uploadcare_file = create_uploadcare_image(image_file)
+        stored_image = create_image(image_file)
         serializer.save(
-            picture=uploadcare_file.cdn_url,
-            uploadcare_uuid=uploadcare_file.uuid
+            picture=stored_image.url,
+            storage_key=stored_image.file_id
         )
         # to user
         send_email(name, email, "Levanchiko says Hi!!!, Thanks for signing up on our beatiful website", "Thanks for signing up on our beatiful website!, i hope you enjoy in!")
@@ -36,8 +36,8 @@ class UserDetailView(
     serializer_class = UserSerializer
     
     def perform_destroy(self,instance):
-        if instance.uploadcare_uuid:
-            destroy_uploadcare_image(instance.uploadcare_uuid)
+        if instance.storage_key:
+            destroy_image(instance.storage_key)
         
         instance.delete()
             

@@ -10,7 +10,7 @@ class ListingImageSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Image
-        fields = ["id","local_url", "image", "uploadcare_uuid", "created_at"]
+        fields = ["id","local_url", "image", "storage_key", "created_at"]
     
     def get_local_url(self,obj):
         req = self.context.get("request")
@@ -24,8 +24,8 @@ class ListingImageCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Image
-        fields = ["id", "listing", "image", "uploadcare_uuid", "created_at"]
-        read_only_fields = ["id", "uploadcare_uuid", "created_at"]
+        fields = ["id", "listing", "image", "storage_key", "created_at"]
+        read_only_fields = ["id", "storage_key", "created_at"]
 
     def to_representation(self, instance):
         return ListingImageSerializer(instance, context=self.context).data

@@ -33,7 +33,7 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=40)
     last_name = models.CharField(max_length=70)
     picture = models.URLField(max_length=500,blank=True,null=True)
-    uploadcare_uuid = models.CharField(max_length=36, blank=True, db_index=True,null=True)
+    storage_key = models.CharField(max_length=255, blank=True, db_index=True,null=True)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=40, blank=True,null=True)
     province = models.ForeignKey(Province, on_delete=models.PROTECT)

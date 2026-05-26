@@ -170,13 +170,18 @@ USE_TZ = True
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework_simplejwt.authentication.JWTAuthentication'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    "PAGE_SIZE": 15,
+    "PAGE_SIZE": 23,
 
 }
 
-UPLOADCARE_PUBLIC_KEY = os.getenv("UPLOADCARE_PUBLIC_KEY", "")
-UPLOADCARE_SECRET_KEY = os.getenv("UPLOADCARE_SECRET_KEY", "")
-UPLOADCARE_CDN_BASE = os.getenv("UPLOADCARE_CDN_BASE", "")
+IMAGEKIT_PUBLIC_KEY = os.getenv("IMAGEKIT_PUBLIC_KEY", "")
+IMAGEKIT_PRIVATE_KEY = os.getenv("IMAGEKIT_PRIVATE_KEY", "")
+IMAGEKIT_URL_ENDPOINT = os.getenv("IMAGEKIT_URL_ENDPOINT", "")
+
+MAILJET_API_KEY = os.getenv("MAILJET_PUBLIC_API_KEY")
+MAILJET_API_SECRET = os.getenv("MAILJET_SECRET_API_KEY")
+MAILJET_SENDER_EMAIL = os.getenv("MAILJET_SENDER_EMAIL")
+MAILJET_SENDER_NAME = os.getenv("MAILJET_SENDER_NAME")
 
 
 # Static files (CSS, JavaScript, Images)

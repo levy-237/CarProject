@@ -1,7 +1,3 @@
-import os
-
-import certifi
-from django.conf import settings
 from rest_framework import generics
 from rest_framework.parsers import FormParser, MultiPartParser
 from config.mixins import ListingPermission, StaffPermission
@@ -15,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from .models import PriceHistory
-from .uploadcare import get_uploadcare_client,create_uploadcare_image,destroy_uploadcare_image
+from .imagekit import create_image, destroy_image
 from common.mail_services import send_email
 from .saved_search import listing_matches_any_saved_search
 
@@ -55,8 +51,8 @@ class ListingDetailUpdateDelete(
     def perform_destroy(self, instance):
         if instance.owner != self.request.user and not self.request.user.is_staff:
             raise PermissionDenied("You are not the owner of this listing.")
-        for uuid in instance.images.exclude(uploadcare_uuid=""):
-            destroy_uploadcare_image(uuid.uploadcare_uuid)
+        for image in instance.images.exclude(storage_key=""):
+            destroy_image(image.storage_key)
 
         instance.delete()
         
@@ -212,11 +208,11 @@ class ListingImageCreateView(
         #     raise PermissionDenied("You are not the owner of this listing.")
         
         if image_file:
-           uploadcare_file = create_uploadcare_image(image_file)
+           stored_image = create_image(image_file)
         
         serializer.save(
-            image=uploadcare_file.cdn_url,
-            uploadcare_uuid=uploadcare_file.uuid,
+            image=stored_image.url,
+            storage_key=stored_image.file_id,
         )
 
 
@@ -230,7 +226,7 @@ class ListingImageDestroyView(
         # if instance.listing.owner != self.request.user and not self.request.user.is_staff:
         #     raise PermissionDenied("You are not the owner of this image.")
 
-        if instance.uploadcare_uuid:
-            destroy_uploadcare_image(instance.uploadcare_uuid)
+        if instance.storage_key:
+            destroy_image(instance.storage_key)
         instance.delete()
 
