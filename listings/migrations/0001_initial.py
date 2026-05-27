@@ -28,9 +28,7 @@ class Migration(migrations.Migration):
                 ('body_type', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='cars.carbodytype')),
                 ('brand', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='cars.carbrand')),
                 ('condition', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='cars.carcondition')),
-                ('fuel', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='cars.carfueltype')),
                 ('model', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='cars.carmodel')),
-                ('transmission', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='cars.cartransmissiontype')),
             ],
         ),
         migrations.CreateModel(
