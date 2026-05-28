@@ -44,6 +44,7 @@ urlpatterns = [
     path("api/users/", include("users.urls")),
     path("api/cars/", include("cars.urls")),
     # temporary
+    path("api/chat/", include("chat.urls"), name="chat"),
     path("api/province/", ProvinceList.as_view(), name="province-list"),
     path("api/province/<int:pk>/", ProvinceDetailUpdateDestroy.as_view(), name="province-detail"),
     path("api/city/", CityList.as_view(), name="city-list"),
