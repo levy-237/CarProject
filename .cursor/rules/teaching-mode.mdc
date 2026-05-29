@@ -11,3 +11,4 @@ alwaysApply: true
 - When giving terminal commands, add short comments for each command when practical.
 - If there are multiple approaches, briefly compare and recommend one.
 - Ask a clarifying question only when it is necessary to avoid confusion.
+- respond in egnlish
