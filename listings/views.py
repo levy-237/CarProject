@@ -3,6 +3,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from config.mixins import ListingPermission, StaffPermission
 from rest_framework import filters
 from .models import Image, Listing
+from django.db.models import F
 from .serializers import ListingImageCreateSerializer, ListingSerializer, ListingControlSerializer,ListingManagementSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ListingFilter
@@ -37,6 +38,17 @@ class ListingDetailUpdateDelete(
     generics.RetrieveUpdateDestroyAPIView):
     queryset = Listing.objects.online()
     serializer_class = ListingSerializer
+    
+    
+    def get_object(self):
+        listing = super().get_object()
+        if self.request.method == "GET":
+            listing.view_count = F("view_count") + 1
+            listing.save(update_fields=["view_count"])
+            listing.refresh_from_db()
+            
+        return listing
+        
     
     def perform_update(self, serializer):
         listing = serializer.instance

@@ -48,6 +48,7 @@ class Listing(models.Model):
     garantie = models.BooleanField(default=False)
     pickerl = models.BooleanField(default=False)
     description = models.TextField(max_length=2000)
+    view_count = models.IntegerField(default=0)
     is_online = models.BooleanField(default=False)
     is_premium = models.BooleanField(default=False)
     is_sold = models.BooleanField(default=False)
