@@ -65,6 +65,8 @@ class ListingSerializer(serializers.ModelSerializer):
     real_summer_range = serializers.IntegerField(validators=[validate_IntValue], required=False, allow_null=True)
     real_winter_range = serializers.IntegerField(validators=[validate_IntValue], required=False, allow_null=True)
     is_favourite = serializers.SerializerMethodField(read_only=True)
+    favourite_count = serializers.SerializerMethodField(read_only=True)
+    
     
     # online = serializers.BooleanField(source="is_online",read_only=True)
     # premium = serializers.BooleanField(source="is_premium",read_only=True)
@@ -106,6 +108,7 @@ class ListingSerializer(serializers.ModelSerializer):
             "is_under_review",
             "is_reserved",
             "images",
+            "favourite_count"
             ]
         read_only_fields = [
             "publish_date",
@@ -116,7 +119,8 @@ class ListingSerializer(serializers.ModelSerializer):
             "is_favourite",
             "is_under_review",
             "is_online",
-            "is_premium"
+            "is_premium",
+            "favourite_count"
         ]
     
     
@@ -150,7 +154,11 @@ class ListingSerializer(serializers.ModelSerializer):
             return False
         
         return req.user.favourite_listings.filter(id=obj.id).exists()
-
+    
+    def get_favourite_count(self,obj):
+        favourite_by_count = obj.favourited_by.count()
+        return favourite_by_count
+        
         
     def create(self,validated_data):
         price_history = validated_data.pop("price_history",None)
