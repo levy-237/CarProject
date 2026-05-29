@@ -41,7 +41,7 @@ class User(AbstractUser):
     streetname_number = models.CharField(max_length=100, blank=True,null=True)
     favourite_listings = models.ManyToManyField(
     "listings.Listing",
-    related_name="favorited_by",
+    related_name="favourited_by",
     blank=True,
     )
 
