@@ -4,10 +4,12 @@ from .models import Chat, Message
 class ChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chat
-        fields= ["created_at","sender","recipient","listing"]
+        fields = ["id", "created_at", "sender", "recipient", "listing"]
+        read_only_fields = ["id", "created_at", "sender"]
         
         
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields= ["created_at","text","chat","sender"]
+        fields = ["id", "created_at", "message", "chat", "sender"]
+        read_only_fields = ["id", "created_at", "sender"]

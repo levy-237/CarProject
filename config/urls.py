@@ -14,6 +14,8 @@ class ApiRootView(APIView):
                 "listings_control": reverse("listing-control", request=request),
                 "users": reverse("user-list", request=request),
                 "images": reverse("listing-image-create", request=request),
+                "chats": reverse("chat-list", request=request),
+                "messages": reverse("message-list", request=request),
                 # temporary
                 "locations": {
                     "provinces": reverse("province-list", request=request),
