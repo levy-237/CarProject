@@ -26,7 +26,12 @@ class ListingCreateAndList(
     ordering_fields = ['price', 'makeyear',"mileage","publish_date"]
     
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        user = self.request.user
+        
+        if not user.is_verified:
+            raise PermissionDenied("For uploading listings, you need to verify your account")
+        
+        serializer.save(owner=user)
         # change to admin
         send_email(to_name="Support", to_email="levanilominashvili23@gmail.com", subject="New Listing Created", text="A new listing has been created.")
 
@@ -127,14 +132,17 @@ class FavouriteListingUpdate(
     serializer_class = ListingSerializer
     
     def create(self, request, *args, **kwargs):
+        user = request.user
+        if not user.is_verified:
+            raise PermissionDenied("You need to be verified to favourite listing")
         listing_id = self.kwargs['pk']
         listing = Listing.objects.get(id=listing_id)
         
-        if request.user.favourite_listings.filter(id=listing_id).exists():
-            request.user.favourite_listings.remove(listing)
+        if user.favourite_listings.filter(id=listing_id).exists():
+            user.favourite_listings.remove(listing)
             return Response({"data":"Successfully removed from favourites"}, status=status.HTTP_200_OK)
         
-        request.user.favourite_listings.add(listing)
+        user.favourite_listings.add(listing)
         return Response({"data": "Added to favourites."}, status=status.HTTP_201_CREATED)
 
                 
@@ -214,6 +222,8 @@ class ListingImageCreateView(
     parser_classes = [MultiPartParser, FormParser]
 
     def perform_create(self, serializer):
+        if not self.request.user.is_verified:
+            raise PermissionDenied("You need to be verified to create image")
         listing = serializer.validated_data.get("listing")
         image_file = serializer.validated_data.get("image")
         # if listing.owner != self.request.user:

@@ -15,20 +15,20 @@ class UserCreateView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    def perform_create(self,serializer):
+    def perform_create(self, serializer):
         image_file = serializer.validated_data.pop("picture_file", None)
         name = serializer.validated_data.get("first_name") + " " + serializer.validated_data.get("last_name")
         email = serializer.validated_data.get("email")
         
-        if not image_file:
-           return serializer.save()
+        if image_file:
+            stored_image = create_image(image_file)
+            serializer.save(
+                picture=stored_image.url,
+                storage_key=stored_image.file_id
+            )
+        else:
+            serializer.save()
         
-        stored_image = create_image(image_file)
-        serializer.save(
-            picture=stored_image.url,
-            storage_key=stored_image.file_id
-        )
-        # to user
         send_email(name, email, "Levanchiko says Hi!!!, Thanks for signing up on our beatiful website", "Thanks for signing up on our beatiful website!, i hope you enjoy in!")
         
         
@@ -90,8 +90,7 @@ class VerifyUser(
     def post(self,request):
         user = request.user
         
-        if not user.is_authenticated or not user.is_staff:
-            return Response({"error":"You are not logged in"}, status=400)
+
             
         if not user.email_verification_code_date or not user.email_verification_code:
             return Response({"error":"No verification request made!"},status=400)
