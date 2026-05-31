@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import UserDetailView, UserCreateView, UserListView,UserMeView, AddSavedSearch, SavedSearchDetailUpdateDelete, SendEmailVerficationCode,VerifyUser 
+from .views import UserDetailView, UserCreateView, UserListView,UserMeView, AddSavedSearch, SavedSearchDetailUpdateDelete, SendEmailVerficationCode,VerifyUser, SendPasswordRecoveryEmail, RecoverPassword
 
 urlpatterns = [
     path('register/', UserCreateView.as_view(), name='user-register'),
@@ -11,6 +11,8 @@ urlpatterns = [
     path('', UserListView.as_view(), name='user-list'),
     path('send-user-verification/', SendEmailVerficationCode.as_view(), name='send-user-verification'),
     path('user-verification/', VerifyUser.as_view(), name='user-verification'),
+    path('send-user-password-recovery/', SendPasswordRecoveryEmail.as_view(), name='send-user-password-recovery'),
+    path('user-password-recovery/', RecoverPassword.as_view(), name='user-password-recovery'),
     path('savedsearch/', AddSavedSearch.as_view(), name='saved_search-add'),
     path('savedsearch/<int:pk>/', SavedSearchDetailUpdateDelete.as_view(), name='saved_search-detail'),
 ]
