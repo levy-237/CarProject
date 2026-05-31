@@ -63,7 +63,10 @@ class ListingDetailUpdateDelete(
         if new_price is not None and new_price != listing.price:
             PriceHistory.objects.create(listing=listing, old_price=listing.price)
         
-        serializer.save()
+        if self.request.user.is_staff:
+            serializer.save()
+        else:
+            serializer.save(is_online=False, is_under_review=True)
     
     def perform_destroy(self, instance):
         if instance.owner != self.request.user and not self.request.user.is_staff:
@@ -236,7 +239,11 @@ class ListingImageCreateView(
             image=stored_image.url,
             storage_key=stored_image.file_id,
         )
-
+        
+        if not self.request.user.is_staff:
+           listing.is_online = False
+           listing.is_under_review = True
+           listing.save(update_fields=["is_online", "is_under_review"])
 
 class ListingImageDestroyView(
     # ListingPermission,
