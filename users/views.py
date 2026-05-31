@@ -168,6 +168,10 @@ class RecoverPassword(
         if not user.password_recovery_code or not user.password_recovery_code_date:
             return Response({"error":"You did not ask for recovery code"}, status=400)
         
+        if user.check_password(new_password):
+            return Response({"error":"This password has already been used in past"}, status=400)
+            
+        
         if not code:
             return Response({"error":"recovery code is required!"}, status=400)
             
@@ -205,6 +209,10 @@ class ChangePassword(
         
         if not user.check_password(current_password):
             return Response({"error":"password is wrong!"},status=400)
+        
+        if current_password == new_password:
+            return Response({"error":"This password has already been used in past"}, status=400)
+            
         
         user.set_password(new_password)
         
