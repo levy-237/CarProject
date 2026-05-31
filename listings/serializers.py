@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 from .models import Image, Listing, PriceHistory
 from users.models import User
-from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,CarConditionSerializer,CarDriveTrainSerializer,CarBodyTypeSerializer,CarModelTrimSerializer
+from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,CarConditionSerializer,CarDriveTrainSerializer,CarBodyTypeSerializer,CarModelTrimSimpleSerializer
 
 
 class ListingImageSerializer(serializers.ModelSerializer):
@@ -10,7 +10,7 @@ class ListingImageSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Image
-        fields = ["id","local_url", "image", "storage_key", "created_at"]
+        fields = ["id","local_url", "image", "storage_key", "created_at","is_cover"]
     
     def get_local_url(self,obj):
         req = self.context.get("request")
@@ -24,11 +24,12 @@ class ListingImageCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Image
-        fields = ["id", "listing", "image", "storage_key", "created_at"]
+        fields = ["id", "listing", "image", "storage_key", "created_at","is_cover"]
         read_only_fields = ["id", "storage_key", "created_at"]
 
     def to_representation(self, instance):
         return ListingImageSerializer(instance, context=self.context).data
+    
 
 
 
@@ -56,7 +57,7 @@ class ListingSerializer(serializers.ModelSerializer):
     model_detail = CarModelSimpleSerializer(source="model", read_only=True)
     condition_detail = CarConditionSerializer(source="condition", read_only=True)
     body_type_detail = CarBodyTypeSerializer(source="body_type", read_only=True)
-    model_trim_detail = CarModelTrimSerializer(source="model_trim",read_only=True)
+    model_trim_detail = CarModelTrimSimpleSerializer(source="model_trim",read_only=True)
     price_history = PriceHistorySerializer(many=True,read_only=True)
     images = ListingImageSerializer(many=True,read_only=True)
     price = serializers.IntegerField(min_value=0)
@@ -165,6 +166,23 @@ class ListingSerializer(serializers.ModelSerializer):
         
         listing = Listing.objects.create(**validated_data)
         return listing
+    
+
+class ListingListDetailSerializer(ListingSerializer):
+    cover_image = serializers.SerializerMethodField(read_only=True)
+    
+    class Meta(ListingSerializer.Meta):
+        fields = [f for f in ListingSerializer.Meta.fields if f != "images"] + ["cover_image"]
+        
+    def get_cover_image(self,obj):
+        cover_image = obj.images.filter(is_cover = True).first()
+        
+        if cover_image:
+            return ListingImageSerializer(cover_image, context=self.context).data
+
+        
+        return None
+        
     
 
 class ListingControlSerializer(serializers.ModelSerializer):

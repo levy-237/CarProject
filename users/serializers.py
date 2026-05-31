@@ -40,7 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
     city_detail = CitySimpleSerializer(source="city",read_only=True)
     class Meta:
         model = User
-        fields = ['id', "created_at", "is_verified", 'username',"first_name","last_name", 'email', 'phone', 'password',"picture_file","picture", "storage_key", "favourite_listings","saved_search","province","city","streetname_number","province_detail","city_detail"]
+        fields = ['id', "created_at", "is_verified", 'username',"first_name","last_name", 'email', 'phone', 'password',"picture_file","picture", "storage_key", "favourite_listings","saved_search","province","city","streetname_number","province_detail","city_detail","is_private"]
         read_only_fields = ["created_at","is_verified", "picture", "storage_key", "favourite_listings","saved_search","province_detail","city_detail"]        
         
         

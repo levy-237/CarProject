@@ -4,7 +4,7 @@ from config.mixins import ListingPermission, StaffPermission
 from rest_framework import filters
 from .models import Image, Listing
 from django.db.models import F
-from .serializers import ListingImageCreateSerializer, ListingSerializer, ListingControlSerializer,ListingManagementSerializer
+from .serializers import ListingImageCreateSerializer, ListingSerializer,ListingListDetailSerializer, ListingControlSerializer,ListingManagementSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ListingFilter
 from rest_framework.exceptions import PermissionDenied
@@ -20,7 +20,7 @@ class ListingCreateAndList(
     # ListingPermission,
     generics.ListCreateAPIView):
     queryset = Listing.objects.online()
-    serializer_class = ListingSerializer
+    serializer_class = ListingListDetailSerializer
     filter_backends = [DjangoFilterBackend,filters.OrderingFilter]
     filterset_class = ListingFilter
     ordering_fields = ['price', 'makeyear',"mileage","publish_date"]

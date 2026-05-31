@@ -70,6 +70,7 @@ class Image(models.Model):
     image = models.URLField(max_length=500)
     storage_key = models.CharField(max_length=255, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_cover = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Image #{self.pk} for listing #{self.listing_id} ({self.storage_key})"
