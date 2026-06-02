@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-from .models import Image, Listing, PriceHistory
+from .models import Image, Listing, PriceHistory, ListingReport
 from users.models import User
 from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,CarConditionSerializer,CarDriveTrainSerializer,CarBodyTypeSerializer,CarModelTrimSimpleSerializer
 
@@ -182,8 +182,13 @@ class ListingListDetailSerializer(ListingSerializer):
 
         
         return None
-        
     
+class ListingReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ListingReport
+        fields = ["id","listing","reason","created_at","reported_by"]
+        read_only_fields = ["id","created_at","reported_by"]
+
 
 class ListingControlSerializer(serializers.ModelSerializer):
     class Meta:

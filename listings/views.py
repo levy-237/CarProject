@@ -2,16 +2,15 @@ from rest_framework import generics
 from rest_framework.parsers import FormParser, MultiPartParser
 from config.mixins import ListingPermission, StaffPermission
 from rest_framework import filters
-from .models import Image, Listing
+from .models import Image, Listing, PriceHistory, ListingReport
 from django.db.models import F
-from .serializers import ListingImageCreateSerializer, ListingSerializer,ListingListDetailSerializer, ListingControlSerializer,ListingManagementSerializer
+from .serializers import ListingImageCreateSerializer, ListingSerializer,ListingListDetailSerializer, ListingControlSerializer,ListingManagementSerializer,ListingReportSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ListingFilter
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from .models import PriceHistory
 from .imagekit import create_image, destroy_image
 from common.mail_services import send_email
 from .saved_search import listing_matches_any_saved_search
@@ -216,6 +215,29 @@ class ListingByOwnerList(
     def get_queryset(self):
         return Listing.objects.by_owner(user=self.request.user)
     
+
+class ListingReportCreateView(
+    # ListingPermission,
+    generics.CreateAPIView):
+    serializer_class = ListingReportSerializer
+    queryset = ListingReport.objects.all()
+    
+    def perform_create(self, serializer):
+        user = self.request.user
+        listing = serializer.validated_data.get("listing")
+        previous_reports = ListingReport.objects.filter(listing=listing).count()
+        reporter = user if user.is_authenticated else None
+        
+        if  previous_reports >= 9:
+            send_email(to_name="Support", to_email="levanilominashvili23@gmail.com", subject="Listing Reported", text=f"A listing has been reported {previous_reports} times.")
+        
+        serializer.save(reported_by=reporter, listing=listing)
+
+class ListingReportList(
+    StaffPermission,
+    generics.ListAPIView):
+    serializer_class = ListingReportSerializer
+    queryset = ListingReport.objects.all().order_by("-created_at")
 
 class ListingImageCreateView(
     # ListingPermission,

@@ -61,6 +61,15 @@ class Listing(models.Model):
         return f"car listing id: {self.pk} \n owner: {self.owner.username} - {self.owner.id}"
 
 
+class ListingReport(models.Model):
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="reports")
+    reason = models.TextField(max_length=2000)
+    created_at = models.DateTimeField(auto_now_add=True)
+    reported_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reported_listings", null=True, blank=True)
+
+    def __str__(self):
+        return f"Report #{self.pk} for listing #{self.listing_id} ({self.reason})"
+
 class Image(models.Model):
     listing = models.ForeignKey(
         Listing,
