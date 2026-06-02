@@ -182,20 +182,18 @@ class ListingListDetailSerializer(ListingSerializer):
 
         
         return None
-    
+
+class ListingControlSerializer(ListingSerializer):
+    class Meta(ListingSerializer.Meta):
+        read_only_fields = [f for f in ListingSerializer.Meta.read_only_fields if f not in ["is_online","is_premium","is_under_review"]]
+        
 class ListingReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ListingReport
         fields = ["id","listing","reason","created_at","reported_by"]
         read_only_fields = ["id","created_at","reported_by"]
 
-
-class ListingControlSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Listing
-        fields = ["id","title","is_online","is_premium","is_under_review"] 
-        read_only_fields = ["id"]
-        
+ 
         
 class ListingManagementSerializer(serializers.ModelSerializer):
     class Meta:
