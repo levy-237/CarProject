@@ -22,6 +22,7 @@ django-filter==25.2
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
 dnspython==2.8.0
+docstring_parser==0.18.0
 email-validator==2.3.0
 factory_boy==3.3.3
 Faker==40.15.0
@@ -32,9 +33,11 @@ hyperlink==21.0.0
 idna==3.13
 imagekitio==5.4.0
 Incremental==24.11.0
+jiter==0.15.0
 jmespath==1.1.0
 mailjet-rest==1.6.0
 msgpack==1.1.2
+ollama==0.6.2
 packaging==26.2
 pillow==12.1.1
 psycopg==3.3.4

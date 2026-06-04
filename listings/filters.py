@@ -31,7 +31,7 @@ class ListingFilter(django_filters.FilterSet):
         field_name="condition", queryset=CarCondition.objects.all()
     )
     drivetrain = django_filters.ModelMultipleChoiceFilter(
-        field_name="drivetrain", queryset=CarDriveTrain.objects.all()
+        field_name="model_trim__drivetrain", queryset=CarDriveTrain.objects.all()
     )
     city = django_filters.ModelMultipleChoiceFilter(
         field_name="owner__city", queryset=Listing.objects.all().values_list("owner__city", flat=True).distinct()
@@ -49,11 +49,11 @@ class ListingFilter(django_filters.FilterSet):
     minpower = django_filters.NumberFilter(field_name="power", lookup_expr="gte")
     maxpower = django_filters.NumberFilter(field_name="power", lookup_expr="lte")
     
-    minbattery = django_filters.NumberFilter(field_name="battery_size", lookup_expr="gte")
-    maxbattery = django_filters.NumberFilter(field_name="battery_size", lookup_expr="lte")
+    minbattery = django_filters.NumberFilter(field_name="model_trim__battery_size", lookup_expr="gte")
+    maxbattery = django_filters.NumberFilter(field_name="model_trim__battery_size", lookup_expr="lte")
     
-    minfactoryrange = django_filters.NumberFilter(field_name="factory_range", lookup_expr="gte")
-    maxfactoryrange = django_filters.NumberFilter(field_name="factory_range", lookup_expr="lte")
+    minfactoryrange = django_filters.NumberFilter(field_name="model_trim__factory_range", lookup_expr="gte")
+    maxfactoryrange = django_filters.NumberFilter(field_name="model_trim__factory_range", lookup_expr="lte")
     
     minsummerrange = django_filters.NumberFilter(field_name="real_summer_range", lookup_expr="gte")
     maxsummerrange = django_filters.NumberFilter(field_name="real_summer_range", lookup_expr="lte")
@@ -63,10 +63,11 @@ class ListingFilter(django_filters.FilterSet):
     
     minaccharging = django_filters.NumberFilter(field_name="model_trim__max_ac_charge_kw", lookup_expr="gte")
     mindccharging = django_filters.NumberFilter(field_name="model_trim__max_dc_charge_kw", lookup_expr="gte")
-    minfastcharginmin = django_filters.NumberFilter(field_name="model_trim__twenty_to_eighty_charge_min", lookup_expr="gte")
+    maxfastcharginmin = django_filters.NumberFilter(field_name="model_trim__twenty_to_eighty_charge_min", lookup_expr="lte")
     
     garantie = django_filters.BooleanFilter(field_name="garantie")
     pickerl = django_filters.BooleanFilter(field_name="pickerl")
+    heatpump = django_filters.BooleanFilter(field_name="heat_pump")
 
     mindate = django_filters.NumberFilter(method="filter_min_year")
     maxdate = django_filters.NumberFilter(method="filter_max_year")
@@ -78,7 +79,7 @@ class ListingFilter(django_filters.FilterSet):
         fields = []
 
     def filter_min_year(self, queryset, name, value):
-        return queryset.filter(makeyear__gte=date(int(value), 12, 31))
+        return queryset.filter(makeyear__gte=date(int(value), 1, 1))
 
     def filter_max_year(self, queryset, name, value):
         return queryset.filter(makeyear__lte=date(int(value), 12, 31))
@@ -90,7 +91,7 @@ class ListingFilter(django_filters.FilterSet):
               Q(body_type__name__icontains=value) |
               Q(brand__name__icontains=value) |
               Q(model__name__icontains=value) |
-              Q(drivetrain__name__icontains=value) |
+              Q(model_trim__drivetrain__name__icontains=value) |
               Q(owner__city__name__icontains=value) |
               Q(owner__province__name__icontains=value)
               ).annotate(

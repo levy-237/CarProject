@@ -191,10 +191,17 @@ IMAGEKIT_PUBLIC_KEY = os.getenv("IMAGEKIT_PUBLIC_KEY", "")
 IMAGEKIT_PRIVATE_KEY = os.getenv("IMAGEKIT_PRIVATE_KEY", "")
 IMAGEKIT_URL_ENDPOINT = os.getenv("IMAGEKIT_URL_ENDPOINT", "")
 
+
 MAILJET_API_KEY = os.getenv("MAILJET_PUBLIC_API_KEY")
 MAILJET_API_SECRET = os.getenv("MAILJET_SECRET_API_KEY")
 MAILJET_SENDER_EMAIL = os.getenv("MAILJET_SENDER_EMAIL")
 MAILJET_SENDER_NAME = os.getenv("MAILJET_SENDER_NAME")
+
+
+OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY")
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "https://ollama.com")
+AI_MODEL = os.getenv("AI_MODEL", "gpt-oss:120b")
+
 
 
 # Static files (CSS, JavaScript, Images)
