@@ -41,9 +41,9 @@ class User(AbstractUser):
     city = models.ForeignKey(City, on_delete=models.PROTECT)
     streetname_number = models.CharField(max_length=100, blank=True,null=True)
     is_verified = models.BooleanField(default=False)
-    email_verification_code = models.IntegerField(blank=True,null=True)
+    email_verification_code = models.CharField(max_length=128, blank=True,null=True)
     email_verification_code_date = models.DateTimeField(blank=True,null=True)
-    password_recovery_code = models.IntegerField(blank=True,null=True)
+    password_recovery_code = models.CharField(max_length=128, blank=True,null=True)
     password_recovery_code_date = models.DateTimeField(blank=True,null=True)
     is_private = models.BooleanField(default=True)
     favourite_listings = models.ManyToManyField(

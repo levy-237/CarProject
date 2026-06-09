@@ -10,6 +10,7 @@ from .verification_code_generator import generate_verification_code
 from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from common.verification_code_helpers import hash_code, verify_code
 
 class UserCreateView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -71,7 +72,7 @@ class SendEmailVerficationCode(
         
         
         verification_code = generate_verification_code()
-        user.email_verification_code = verification_code
+        user.email_verification_code = hash_code(verification_code)
         user.email_verification_code_date = timezone.now()
         user.save(update_fields=["email_verification_code","email_verification_code_date"])  
 
@@ -109,7 +110,7 @@ class VerifyUser(
         if not code:
             return Response({"error":"Verification code is required!"}, status=400)
                 
-        if str(code) != str(user.email_verification_code):
+        if not verify_code(code, user.email_verification_code):
             return Response({"error":"Wrong verification code!"}, status=400)
         
         user.is_verified = True
@@ -137,8 +138,8 @@ class SendPasswordRecoveryEmail(
         
         time_now = timezone.now()
         verification_code = generate_verification_code()
-
-        user.password_recovery_code = verification_code
+        
+        user.password_recovery_code = hash_code(verification_code)
         user.password_recovery_code_date = time_now
         
         user.save(update_fields=["password_recovery_code","password_recovery_code_date"])
@@ -180,7 +181,7 @@ class RecoverPassword(
         if time_difference.total_seconds() > 600:
             return Response({"error":"Recovery code expired!"}, status=400)
         
-        if str(code) != str(user.password_recovery_code):
+        if not verify_code(code, user.password_recovery_code):
             return Response({"error":"wrong recovery code"}, status=400)
 
         
