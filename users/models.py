@@ -33,6 +33,7 @@ class User(AbstractUser):
     created_at = models.DateField(auto_now_add=True)
     first_name = models.CharField(max_length=40)
     last_name = models.CharField(max_length=70)
+    company_name = models.CharField(max_length=100,blank=True,null=True)
     picture = models.URLField(max_length=500,blank=True,null=True)
     storage_key = models.CharField(max_length=255, blank=True, db_index=True,null=True)
     email = models.EmailField(unique=True)
@@ -45,7 +46,7 @@ class User(AbstractUser):
     email_verification_code_date = models.DateTimeField(blank=True,null=True)
     password_recovery_code = models.CharField(max_length=128, blank=True,null=True)
     password_recovery_code_date = models.DateTimeField(blank=True,null=True)
-    is_private = models.BooleanField(default=True)
+    is_private = models.BooleanField()
     favourite_listings = models.ManyToManyField(
     "listings.Listing",
     related_name="favourited_by",

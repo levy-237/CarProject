@@ -40,17 +40,25 @@ class UserSerializer(serializers.ModelSerializer):
     city_detail = CitySimpleSerializer(source="city",read_only=True)
     class Meta:
         model = User
-        fields = ['id', "created_at", "is_verified", 'username',"first_name","last_name", 'email', 'phone', 'password',"picture_file","picture", "storage_key", "favourite_listings","saved_search","province","city","streetname_number","province_detail","city_detail","is_private"]
+        fields = ['id', "created_at", "is_verified", 'username',"company_name","first_name","last_name", 'email', 'phone', 'password',"picture_file","picture", "storage_key", "favourite_listings","saved_search","province","city","streetname_number","province_detail","city_detail","is_private"]
         read_only_fields = ["created_at","is_verified", "picture", "storage_key", "favourite_listings","saved_search","province_detail","city_detail"]        
         
         
     def validate(self, data):
         province = data.get("province", getattr(self.instance, "province", None))
         city = data.get("city", getattr(self.instance, "city", None))
+        is_private = data.get("is_private")
+        company_name = data.get("company_name")
+
         
         if province and city and city.province_id != province.id:
             raise serializers.ValidationError(
                 {"location": "Selected city does not belong to the selected province."}
+            )
+            
+        if is_private is not None and not is_private and not company_name:
+            raise serializers.ValidationError(
+                {"company_name": "non private users need to have company name"}
             )
         return data
         
