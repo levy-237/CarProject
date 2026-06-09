@@ -95,6 +95,7 @@ class ListingSerializer(serializers.ModelSerializer):
             "condition",
             "condition_detail",
             "power",
+            "battery_health",
             "real_summer_range",
             "real_winter_range",
             "heat_pump",

@@ -46,6 +46,7 @@ class Listing(models.Model):
     mileage = models.IntegerField()
     condition = models.ForeignKey(CarCondition, on_delete=models.PROTECT)
     power = models.IntegerField()
+    battery_health = models.IntegerField(null=True,blank=True)
     real_summer_range = models.IntegerField(null=True,blank=True)
     real_winter_range = models.IntegerField(null=True,blank=True)
     heat_pump = models.BooleanField(default=True)
