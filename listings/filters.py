@@ -34,10 +34,10 @@ class ListingFilter(django_filters.FilterSet):
         field_name="model_trim__drivetrain", queryset=CarDriveTrain.objects.all()
     )
     city = django_filters.ModelMultipleChoiceFilter(
-        field_name="owner__city", queryset=Listing.objects.all().values_list("owner__city", flat=True).distinct()
+        field_name="owner__city", queryset=City.objects.all()
     )
     province = django_filters.ModelMultipleChoiceFilter(
-        field_name="owner__province", queryset=Listing.objects.all().values_list("owner__province", flat=True).distinct()
+        field_name="owner__province", queryset=Province.objects.all()
     )
     
     minprice = django_filters.NumberFilter(field_name="price", lookup_expr="gte")

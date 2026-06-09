@@ -16,6 +16,7 @@ class ApiRootView(APIView):
                 "images": reverse("listing-image-create", request=request),
                 "chats": reverse("chat-list", request=request),
                 "ai-chat":reverse("chat-bot", request=request),
+                "ai-comparator":reverse("ai-compare", request=request),
                 "messages": reverse("message-list", request=request),
                 # temporary
                 "locations": {
@@ -46,7 +47,7 @@ urlpatterns = [
     path("api/listings/", include("listings.urls")),
     path("api/users/", include("users.urls")),
     path("api/cars/", include("cars.urls")),
-    path("api/chat-bot/",include("ai.urls")),
+    path("api/ai/",include("ai.urls")),
     # temporary
     path("api/chat/", include("chat.urls"), name="chat"),
     path("api/province/", ProvinceList.as_view(), name="province-list"),

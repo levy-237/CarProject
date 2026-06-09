@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from listings.models import Listing
 from rest_framework import status
 from .aiAdvisor import AiAdvisor
+from .aiComparator import AiComparator
 from listings.filters import ListingFilter
 from listings.serializers import ListingListDetailSerializer
 from users.models import City, Province
@@ -13,6 +14,15 @@ from users.models import City, Province
 
 # Translates the AI advisor's hard_filters keys into ListingFilter param names.
 # Kept separate from the prompt so filter naming and AI output can evolve independently.
+SORT_MAP = {
+    "price_asc": "price",
+    "price_desc": "-price",
+    "year_desc": "-makeyear",
+    "date_desc": "-publish_date",
+    "kilometers_asc": "mileage",
+    "range_desc": "-real_summer_range",
+    "dc_charging_desc": "-model_trim__max_dc_charge_kw",
+}
 def build_filter_data(hard_filters):
     data = {}
     if not hard_filters:
@@ -85,34 +95,51 @@ def build_filter_data(hard_filters):
 
 
 class ChatBot(APIView):
+    def post(self, request):
+        base_queryset = Listing.objects.for_advisor()
+        question = request.data.get("question")
 
-    def get(self, request):
-        base_queryset = Listing.objects.online()
-        question = request.query_params.get("q")
-        
+        if not question:
+            return Response({"error": "Pass a question with ?q=..."}, status=400)
+
         advisor_response = AiAdvisor(question)
         # print(advisor_response)
         data = json.loads(advisor_response)
-        hard_filters = data["hard_filters"]
-        soft_preferences = data["soft_preferences"]
-        print(hard_filters)
-        print(soft_preferences)
-        filter_data = build_filter_data(hard_filters)
-        print("filter_data:", filter_data)
-        filterset = ListingFilter(
-            data=filter_data,
-            queryset=base_queryset
-        )
-        
-        listings = filterset.qs if filterset.is_valid() else base_queryset.none()
-        serializer = ListingListDetailSerializer(
-            listings,
-            many=True,
-            context={"request": request},  
-        )
-        matched_listings = serializer.data
 
+        # The planner decided this question is not a listing search.
+        # Quit early so we skip filtering, serialization and the expensive advisor LLM call.
+        require_advisor = data.get("require_advisor")
+        hard_filters = {}
+        soft_preferences = {}
+        matched_listings = []
         
+        if require_advisor:
+            hard_filters = data.get("hard_filters") or {}
+            soft_preferences = data.get("soft_preferences") or {}
+            sort = data.get("sort") 
+            
+            print(hard_filters)
+            print(soft_preferences)
+            filter_data = build_filter_data(hard_filters)
+            print("filter_data:", filter_data)
+            filterset = ListingFilter(
+                    data=filter_data,
+                    queryset=base_queryset
+                )
+            order_field = SORT_MAP.get(sort)
+            listings = filterset.qs if filterset.is_valid() else base_queryset.none()
+            
+            if order_field:
+                listings = listings.order_by(order_field)
+            serializer = ListingListDetailSerializer(
+                    listings[:15],
+                    many=True,
+                    context={"request": request},  
+                )
+            
+            matched_listings = serializer.data
+
+            
         ADVISOR_SYSTEM_PROMPT = ADVISOR_SYSTEM_PROMPT = """
 You are the eAutoKauf AI buying advisor.
 
@@ -127,6 +154,11 @@ Return ONLY valid JSON.
 Do not use markdown.
 Do not include text outside the JSON.
 
+Conversation modes (decide first):
+- If require_advisor is false: the user did NOT ask for a listing search. There are no listings to discuss. Just answer the user's question helpfully and conversationally, but ONLY within the context of cars and electric vehicles (general EV advice, charging, batteries, ownership, buying guidance, how the marketplace works, etc.). Put your full reply in "message" and leave listing_reasons, suggested_filter_relaxations and suggested_follow_up_questions empty. Do NOT mention filters, matches, or "no results" in this mode. If the question is not about cars or electric vehicles at all, politely say you can only help with cars and electric vehicles.
+- If require_advisor is true and matched_listings is empty: this WAS a listing search but nothing matched. Explain that no exact matches were found and suggest which filters could be relaxed.
+- If require_advisor is true and matched_listings is not empty: explain and rank the matched listings as described below.
+
 Tone:
 - Helpful, clear, practical.
 - Short and buyer-focused.
@@ -135,7 +167,7 @@ Tone:
 
 Core rules:
 - Only discuss listings included in matched_listings.
-- If matched_listings is empty, explain that no exact matches were found and suggest which filters could be relaxed.
+- If require_advisor is true and matched_listings is empty, explain that no exact matches were found and suggest which filters could be relaxed.
 - If matched_listings is weak, limited, or not an exact fit, mention that in message.
 - Use hard_filters as strict requirements already applied by the backend.
 - Use soft_preferences to explain why some listings are better matches than others.
@@ -195,7 +227,7 @@ Field rules:
 - suggested_filter_relaxations: if results are weak, limited, or empty, suggest filters to relax.
 - suggested_follow_up_questions: useful next questions the user could answer.
 
-If matched_listings is empty, return:
+If require_advisor is true and matched_listings is empty, return:
 {
   "message": "No exact matches were found. Try relaxing one or two requirements, for example increasing the budget, allowing more body types, lowering the range requirement, or widening the location. What is the most important requirement for you: price, range, space, or charging speed?",
   "listing_reasons": [],
@@ -203,13 +235,23 @@ If matched_listings is empty, return:
   "suggested_follow_up_questions": ["What is the most important requirement for you: price, range, space, or charging speed?"]
 }
 
+If require_advisor is false, return only a conversational car/EV answer, for example:
+{
+  "message": "<your helpful answer about cars or electric vehicles, in the user's language>",
+  "listing_reasons": [],
+  "suggested_filter_relaxations": [],
+  "suggested_follow_up_questions": []
+}
+
 Never output IDs that were not provided.
 Never mention internal field names like hard_filters or soft_preferences to the user unless necessary.
 Never say "the database says"; say "based on the available listing data".
 """
 
+
         advisor_payload = {
     "original_question": question,
+    "require_advisor": bool(require_advisor),
     "soft_preferences": soft_preferences,
     "matched_listings": matched_listings
     }
@@ -217,9 +259,6 @@ Never say "the database says"; say "based on the available listing data".
         ADVISOR_USER_PROMPT = json.dumps(advisor_payload, ensure_ascii=False)
         print(advisor_payload)
         print("--- FINISHED ---- ")
-        
-        if not question:
-            return Response({"error": "Pass a question with ?q=..."}, status=400)
 
         client = Client(
             host='https://ollama.com',
@@ -246,4 +285,29 @@ Never say "the database says"; say "based on the available listing data".
         print(reply)
         return Response({"reply": reply})
 
+
+class Comparator(APIView):
+    def post(self, request):
+        ids_arr = request.data.get("question")
+        
+        if not ids_arr or len(ids_arr) < 2:
+            return Response({"detail":"Please provide at least two listings"}, status=400)
+            
+        listings = Listing.objects.online().filter(id__in = ids_arr)
+        
+        if not listings or listings.count() < 2:
+            return Response({"detail":"at least two listings could not be found"}, status=400)
+        
+        serializer = ListingListDetailSerializer(
+            listings,
+            many=True,
+            context={"request": request},  
+        )
+        
+        comparable_listings = serializer.data
+        
+        comparation_response = AiComparator(comparable_listings)
+        
+        print(comparation_response)
+        return Response({"reply": comparation_response})
 

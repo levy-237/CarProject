@@ -25,6 +25,10 @@ class ListingsManager(models.Manager):
     
     def is_under_review(self):
         return self.filter(is_under_review=True)
+    
+    def for_advisor(self):
+        return self.filter(is_online=True, is_under_review=False).order_by("-is_premium")
+
 
     
 
