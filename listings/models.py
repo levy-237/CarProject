@@ -8,26 +8,37 @@ def listing_image_upload_to(instance, filename):
 
 
 class ListingsManager(models.Manager):
+    SELECT_RELATED_FIELDS = ["owner","brand","model","model_trim","body_type","condition"]
+    PREFETCH_RELATED_FIELDS = ["images","price_history"]
+    
+    def listing_optimization(self):
+        return self.select_related(*self.SELECT_RELATED_FIELDS).prefetch_related(*self.PREFETCH_RELATED_FIELDS)
+    
+    
+    #  only for internal use
+    def everything(self):
+        return self.listing_optimization().all()
+    
     def online(self):
-        return self.filter(is_online=True, is_under_review=False).order_by("-is_premium","-publish_date")
+        return self.listing_optimization().filter(is_online=True, is_under_review=False).order_by("-is_premium","-publish_date")
     
     def offline(self):
-        return self.filter(is_online=False, is_under_review=False).order_by("-is_premium","-publish_date")
-    
+        return self.listing_optimization().filter(is_online=False, is_under_review=False).order_by("-is_premium","-publish_date")
+
     def premium(self):
-        return self.filter(is_premium=True)
+        return self.listing_optimization().filter(is_premium=True)
     
     def by_owner(self, user):
-        return self.filter(owner=user)
+        return self.listing_optimization().filter(owner=user)
     
     def deactivated(self):
-        return self.filter(deactivated=True)
+        return self.listing_optimization().filter(is_online=False)
     
     def is_under_review(self):
-        return self.filter(is_under_review=True)
+        return self.listing_optimization().filter(is_under_review=True)
     
     def for_advisor(self):
-        return self.filter(is_online=True, is_under_review=False).order_by("-is_premium")
+        return self.listing_optimization().filter(is_online=True, is_under_review=False).order_by("-is_premium")
 
 
     

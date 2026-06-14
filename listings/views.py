@@ -114,14 +114,14 @@ class ListingControlDetailView(
 class ListingManagementListView(
     # StaffPermission,
     generics.ListCreateAPIView):
-    queryset = Listing.objects.all()
+    queryset = Listing.objects.everything()
     serializer_class = ListingManagementSerializer
 
 
 class ListingManagementDetailUpdateDelete(
     # StaffPermission,
     generics.RetrieveUpdateDestroyAPIView):
-    queryset = Listing.objects.all()
+    queryset = Listing.objects.everything()
     serializer_class = ListingManagementSerializer
 
 

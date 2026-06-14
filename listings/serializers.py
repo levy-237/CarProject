@@ -173,7 +173,7 @@ class ListingListDetailSerializer(ListingSerializer):
     cover_image = serializers.SerializerMethodField(read_only=True)
     
     class Meta(ListingSerializer.Meta):
-        fields = [f for f in ListingSerializer.Meta.fields if f != "images"] + ["cover_image"]
+        fields = ListingSerializer.Meta.fields + ["cover_image"]
         
     def get_cover_image(self,obj):
         cover_image = obj.images.filter(is_cover = True).first()
