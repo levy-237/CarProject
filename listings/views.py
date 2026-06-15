@@ -27,7 +27,7 @@ class ListingCreateAndList(
     def perform_create(self, serializer):
         user = self.request.user
         
-        if not user.is_verified:
+        if not user.is_authenticated or not user.is_verified:
             raise PermissionDenied("For uploading listings, you need to verify your account")
         
         serializer.save(owner=user)
