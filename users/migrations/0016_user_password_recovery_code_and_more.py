@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='password_recovery_code',
-            field=models.DateTimeField(blank=True, null=True),
+            field=models.CharField(blank=True, max_length=128, null=True),
         ),
         migrations.AddField(
             model_name='user',

@@ -9,10 +9,5 @@ class Migration(migrations.Migration):
         ('users', '0016_user_password_recovery_code_and_more'),
     ]
 
-    operations = [
-        migrations.AlterField(
-            model_name='user',
-            name='password_recovery_code',
-            field=models.IntegerField(blank=True, null=True),
-        ),
-    ]
+    # No-op: field type was corrected in 0016. Kept so migration numbering stays intact.
+    operations = []

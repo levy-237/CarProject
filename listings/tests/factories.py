@@ -8,8 +8,9 @@ from cars.tests.factories import (
     CarBodyTypeFactory,
     CarBrandFactory,
     CarConditionFactory,
-    CarDriveTrainFactory,
     CarModelFactory,
+    CarModelTrimFactory,
+    CarBodyTypeFactory,
 )
 
 class ListingFactory(DjangoModelFactory):
@@ -19,13 +20,14 @@ class ListingFactory(DjangoModelFactory):
     owner = factory.SubFactory(UserFactory)
     brand = factory.SubFactory(CarBrandFactory)
     model = factory.SubFactory(CarModelFactory, connected_brand=factory.SelfAttribute("..brand"))
-    body_type = factory.SubFactory(CarBodyTypeFactory)
+    model_trim = factory.SubFactory(CarModelTrimFactory, connected_model=factory.SelfAttribute("..model"))
     condition = factory.SubFactory(CarConditionFactory)
-    drivetrain = factory.SubFactory(CarDriveTrainFactory)
+    body_type = factory.SubFactory(CarBodyTypeFactory)
     makeyear = date(2020, 1, 1)
     price = 25000
     mileage = 10000
     power = 150
     is_online = True
     is_premium = False
-    hidden = False
+    is_under_review = False
+    description = "This is a test listing"
