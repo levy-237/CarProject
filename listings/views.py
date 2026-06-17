@@ -168,7 +168,7 @@ class CompareListings(generics.ListAPIView):
     serializer_class = ListingSerializer
     def get_queryset(self):
         queryset = Listing.objects.online()
-        ids = self.request.query_params.get("id")
+        ids = self.request.query_params.get("ids")
         
         if not ids:
             raise ValidationError({"error":"id needs to be present"})

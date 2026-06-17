@@ -1,7 +1,7 @@
 from rest_framework import status
 from django.urls import reverse
 from listings.tests.factories import ListingFactory
-from listings.models import Listing, PriceHistory
+from listings.models import Listing, PriceHistory, ListingReport
 from cars.tests.factories import CarBrandFactory,CarModelFactory,CarBodyTypeFactory,CarConditionFactory,CarModelTrimFactory
 from users.tests.factories import UserFactory
 from rest_framework.test import APITestCase
@@ -9,7 +9,6 @@ from datetime import date
 
 class ListingViewsTests(APITestCase):
     def setUp(self):
-        # ListingFactory.create_batch(10, is_online=True,is_premium=True,is_under_review=False)
         # ListingFactory.create_batch(10, is_online=False,is_premium=False,is_under_review=True)
         self.url = reverse("listing-list")
         self.user_2 = UserFactory(is_verified=True)
@@ -38,10 +37,22 @@ class ListingViewsTests(APITestCase):
             "description": self.description,
         } 
         
-    
+    def authenticate_user(self, *, is_verified=True, is_staff=False):
+        user = UserFactory(is_verified=is_verified, is_staff=is_staff)
+        self.client.force_authenticate(user=user)
+        return user
+        
+        
+    def test_get_listings(self):
+        ListingFactory.create_batch(10, is_online=True,is_premium=True,is_under_review=False)
+        url = reverse("listing-list")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 10)
+        
     def test_can_verified_user_create_listing(self):  
-        verified_user = UserFactory(is_verified=True)
-        self.client.force_authenticate(user=verified_user)
+        verified_user = self.authenticate_user()
         
         response = self.client.post(self.url,self.payload,format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -59,8 +70,7 @@ class ListingViewsTests(APITestCase):
         
         
     def test_can_non_verified_user_create_listing(self):
-        non_verified_user = UserFactory(is_verified=False)
-        self.client.force_authenticate(user=non_verified_user)
+        non_verified_user = self.authenticate_user(is_verified=False)
         
         response = self.client.post(self.url,self.payload,format="json")
         
@@ -76,8 +86,7 @@ class ListingViewsTests(APITestCase):
         self.assertEqual(Listing.objects.count(), 0)
         
     def test_can_owner_update_listing(self):
-        owner = UserFactory(is_verified=True)
-        self.client.force_authenticate(user=owner)
+        owner = self.authenticate_user()
         listing = ListingFactory(owner=owner)
         url = reverse("listing-detail", args=[listing.id])
         response = self.client.put(url,self.payload,format="json")
@@ -90,8 +99,7 @@ class ListingViewsTests(APITestCase):
         self.assertEqual(response.data["makeyear"], self.makeyear.isoformat())
         
     def test_can_not_owner_update_listing(self):
-        user = UserFactory(is_verified=True)
-        self.client.force_authenticate(user=user)
+        user = self.authenticate_user()
         listing = ListingFactory(owner=self.user_2)
         
         url = reverse("listing-detail", args=[listing.id])
@@ -99,8 +107,7 @@ class ListingViewsTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         
     def test_can_owner_delete_listing(self):
-        owner = UserFactory(is_verified=True)
-        self.client.force_authenticate(user=owner)
+        owner = self.authenticate_user()
         listing = ListingFactory(owner=owner)
         url = reverse("listing-detail", args=[listing.id])
         response = self.client.delete(url)
@@ -108,8 +115,7 @@ class ListingViewsTests(APITestCase):
         self.assertEqual(Listing.objects.count(), 0)
         
     def test_can_not_owner_delete_listing(self):
-        user = UserFactory(is_verified=True)
-        self.client.force_authenticate(user=user)
+        user = self.authenticate_user()
         listing = ListingFactory(owner=self.user_2)
         url = reverse("listing-detail", args=[listing.id])
         response = self.client.delete(url)
@@ -117,8 +123,7 @@ class ListingViewsTests(APITestCase):
         self.assertEqual(Listing.objects.count(), 1)
         
     def test_can_staff_delete_listing(self):
-        staff = UserFactory(is_verified=True,is_staff=True)
-        self.client.force_authenticate(user=staff)
+        staff = self.authenticate_user(is_staff=True)
         listing = ListingFactory(owner=self.user_2)
         url = reverse("listing-detail", args=[listing.id])
         response = self.client.delete(url)
@@ -127,8 +132,7 @@ class ListingViewsTests(APITestCase):
         
         
     def test_can_staff_update_listing(self):
-        staff = UserFactory(is_verified=True,is_staff=True)
-        self.client.force_authenticate(user=staff)
+        staff = self.authenticate_user(is_staff=True)
         listing = ListingFactory(owner=self.user_2)
         url = reverse("listing-detail", args=[listing.id])
         response = self.client.put(url,self.payload,format="json")
@@ -138,16 +142,14 @@ class ListingViewsTests(APITestCase):
         
     
     def test_created_listing_goes_under_review(self):
-        verified_user = UserFactory(is_verified=True)
-        self.client.force_authenticate(user=verified_user)
+        verified_user = self.authenticate_user()
         response = self.client.post(self.url,self.payload,format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Listing.objects.first().is_under_review, True)
         self.assertEqual(Listing.objects.first().is_online, False)
         
     def test_created_listing_cant_bypass_review(self):
-        verified_user = UserFactory(is_verified=True)
-        self.client.force_authenticate(user=verified_user)
+        verified_user = self.authenticate_user()
         self.payload["is_under_review"] = False
         self.payload["is_online"] = True
         
@@ -158,8 +160,7 @@ class ListingViewsTests(APITestCase):
         self.assertEqual(Listing.objects.first().is_online, False)
     
     def test_under_review_listing_is_not_online(self):
-        verified_user = UserFactory(is_verified=True)
-        self.client.force_authenticate(user=verified_user)
+        verified_user = self.authenticate_user()
         
         response = self.client.post(self.url,self.payload,format="json")
         
@@ -168,8 +169,7 @@ class ListingViewsTests(APITestCase):
         
     
     def test_listing_view_count_increments(self):
-        verified_user = UserFactory(is_verified=True)
-        self.client.force_authenticate(user=verified_user)
+        verified_user = self.authenticate_user()
         listing = ListingFactory(is_online=True,is_under_review=False)
         url = reverse("listing-detail", args=[listing.id])
         
@@ -178,8 +178,7 @@ class ListingViewsTests(APITestCase):
         self.assertEqual(Listing.objects.first().view_count,1)
         
     def test_price_history_update(self):
-        verified_user = UserFactory(is_verified=True)
-        self.client.force_authenticate(user=verified_user)
+        verified_user = self.authenticate_user()
         listing = ListingFactory(owner=verified_user,is_online=True,is_under_review=False)
         
         url = reverse("listing-detail",args=[listing.id])
@@ -191,8 +190,7 @@ class ListingViewsTests(APITestCase):
         self.assertEqual(old_price_for_test, listing.price)
     
     def test_can_unverified_favourite_listing(self):
-        unverified_user = UserFactory(is_verified=False)
-        self.client.force_authenticate(user=unverified_user)
+        unverified_user = self.authenticate_user(is_verified=False)
         listing_1 = ListingFactory(is_online=True, is_under_review=False)
         
         url = reverse("favourite-list-update",args=[listing_1.id])
@@ -214,8 +212,7 @@ class ListingViewsTests(APITestCase):
     
         
     def test_can_owner_favourite_listing(self):
-        verified_user = UserFactory(is_verified=True)
-        self.client.force_authenticate(user=verified_user)
+        verified_user = self.authenticate_user()
         listing_1 = ListingFactory(owner=verified_user, is_online=True,is_under_review=False)
         
         url = reverse("favourite-list-update",args=[listing_1.id])
@@ -226,8 +223,7 @@ class ListingViewsTests(APITestCase):
         
         
     def test_favourite_listing_add_and_delete(self):
-        verified_user = UserFactory(is_verified=True)
-        self.client.force_authenticate(user=verified_user)
+        verified_user = self.authenticate_user()
         listing_1 = ListingFactory(is_online=True,is_under_review=False)
         listing_2 = ListingFactory(is_online=True,is_under_review=False)
         
@@ -247,14 +243,125 @@ class ListingViewsTests(APITestCase):
         
         
         
-    
-    
-    # def test_get_listings(self):
-    #     url = reverse("listing-control")
-    #     response = self.client.get(url)
+    def test_anon_report_listing(self):
+        listing = ListingFactory(is_online=True,is_under_review=False)
+        
+        url = reverse("listing-report-create")
+        
+        reported_listing = Listing.objects.get(pk=listing.id)
+        
+        for i in range(5):
+            response = self.client.post(url,{"listing":listing.id,"reason":"i dont know"},format="json")
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        self.assertEqual(ListingReport.objects.all().count(),5)
+        self.assertEqual(reported_listing.reports.all().count(),5)
 
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(len(response.data["results"]), 10)
+        
+    def test_user_report_listing(self):
+        self.client.force_authenticate(user=self.user_2)
+
+        listing = ListingFactory(is_online=True,is_under_review=False)
+        
+        url = reverse("listing-report-create")
+        
+        reported_listing = Listing.objects.get(pk=listing.id)
+        
+
+        response = self.client.post(url,{"listing":listing.id,"reason":"i dont know","reporter":self.user_2.id},format="json")
+        
+        self.assertEqual(ListingReport.objects.all().count(),1)
+        self.assertEqual(ListingReport.objects.first().reported_by, self.user_2)
+    
+    
+    def test_listing_comparasion(self):
+        listing_1 = ListingFactory(is_online=True,is_under_review=False)
+        listing_2 = ListingFactory(is_online=True,is_under_review=False)
+        listing_3 = ListingFactory(is_online=True,is_under_review=False)
+        
+        success_url = reverse("compare-list", query={"ids":f"{listing_1.id},{listing_2.id},{listing_3.id}"})
+        fail_url = reverse("compare-list", query={"ids":f"{listing_1.id},{listing_2.id},{listing_3.id},{listing_1.id}"})
+        
+        
+        success_response = self.client.get(success_url)
+        fail_response = self.client.get(fail_url)
+        
+        
+        self.assertEqual(len(success_response.data["results"]),3)
+        self.assertEqual(fail_response.status_code,status.HTTP_400_BAD_REQUEST)
+        
+    def test_filter_listings_by_brand(self):
+        brand = CarBrandFactory()
+        model = CarModelFactory(connected_brand=brand)
+        model_trim = CarModelTrimFactory(connected_model=model)
+        matching_listing_1 = ListingFactory(
+            brand=brand,
+            model=model,
+            model_trim=model_trim,
+            is_online=True,
+            is_under_review=False,
+        )
+        matching_listing_2 = ListingFactory(
+            brand=brand,
+            model=model,
+            model_trim=model_trim,
+            is_online=True,
+            is_under_review=False,
+        )
+        ListingFactory(is_online=True, is_under_review=False)
+
+        url = reverse("listing-list")
+        response = self.client.get(url, {"brand": [brand.id]})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result_ids = {listing["id"] for listing in response.data["results"]}
+        self.assertEqual(result_ids, {matching_listing_1.id, matching_listing_2.id})
+
+    def test_filter_listings_by_price_range(self):
+        cheap_listing = ListingFactory(price=10000, is_online=True, is_under_review=False)
+        matching_listing = ListingFactory(price=25000, is_online=True, is_under_review=False)
+        expensive_listing = ListingFactory(price=50000, is_online=True, is_under_review=False)
+
+        url = reverse("listing-list")
+        response = self.client.get(url, {"minprice": 20000, "maxprice": 30000})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result_ids = {listing["id"] for listing in response.data["results"]}
+        self.assertEqual(result_ids, {matching_listing.id})
+        self.assertNotIn(cheap_listing.id, result_ids)
+        self.assertNotIn(expensive_listing.id, result_ids)
+
+    def test_search_filters_listings_and_prioritizes_title_matches(self):
+        title_match = ListingFactory(
+            title="Electric family car",
+            description="Comfortable daily driver",
+            is_online=True,
+            is_under_review=False,
+        )
+        description_match = ListingFactory(
+            title="City commuter",
+            description="Electric range is excellent",
+            is_online=True,
+            is_under_review=False,
+        )
+        unrelated_listing = ListingFactory(
+            title="Diesel van",
+            description="Cargo vehicle",
+            is_online=True,
+            is_under_review=False,
+        )
+
+        url = reverse("listing-list")
+        response = self.client.get(url, {"search": "electric"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data["results"]
+        result_ids = [listing["id"] for listing in results]
+        self.assertEqual(result_ids[0], title_match.id)
+        self.assertIn(description_match.id, result_ids)
+        self.assertNotIn(unrelated_listing.id, result_ids)
+        
+
     
     # def test_filter_listings(self):
     #     brand = CarBrandFactory()
