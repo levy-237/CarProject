@@ -72,7 +72,7 @@ class ListingViewsTests(APITestCase):
         self.client.force_authenticate(user=None)
         response = self.client.post(self.url,self.payload,format="json")
         
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(Listing.objects.count(), 0)
         
     def test_can_owner_update_listing(self):
@@ -150,7 +150,9 @@ class ListingViewsTests(APITestCase):
         self.client.force_authenticate(user=verified_user)
         self.payload["is_under_review"] = False
         self.payload["is_online"] = True
+        
         response = self.client.post(self.url,self.payload,format="json")
+        
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Listing.objects.first().is_under_review, True)
         self.assertEqual(Listing.objects.first().is_online, False)
@@ -158,7 +160,9 @@ class ListingViewsTests(APITestCase):
     def test_under_review_listing_is_not_online(self):
         verified_user = UserFactory(is_verified=True)
         self.client.force_authenticate(user=verified_user)
+        
         response = self.client.post(self.url,self.payload,format="json")
+        
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Listing.objects.online().count(), 0)
         
@@ -168,6 +172,7 @@ class ListingViewsTests(APITestCase):
         self.client.force_authenticate(user=verified_user)
         listing = ListingFactory(is_online=True,is_under_review=False)
         url = reverse("listing-detail", args=[listing.id])
+        
         self.client.get(url)
         
         self.assertEqual(Listing.objects.first().view_count,1)
@@ -176,11 +181,69 @@ class ListingViewsTests(APITestCase):
         verified_user = UserFactory(is_verified=True)
         self.client.force_authenticate(user=verified_user)
         listing = ListingFactory(owner=verified_user,is_online=True,is_under_review=False)
+        
         url = reverse("listing-detail",args=[listing.id])
         self.client.patch(url,{"price":500})
+        
         old_price_for_test = listing.price_history.first().old_price
+        
         self.assertEqual(PriceHistory.objects.count(),1)
         self.assertEqual(old_price_for_test, listing.price)
+    
+    def test_can_unverified_favourite_listing(self):
+        unverified_user = UserFactory(is_verified=False)
+        self.client.force_authenticate(user=unverified_user)
+        listing_1 = ListingFactory(is_online=True, is_under_review=False)
+        
+        url = reverse("favourite-list-update",args=[listing_1.id])
+        
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        
+    def test_can_non_auth_favourite_listing(self):
+        self.client.force_authenticate(user=None)
+        listing_1 = ListingFactory(is_online=True,is_under_review=False)
+        
+        url = reverse("favourite-list-update",args=[listing_1.id])
+        
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code,status.HTTP_401_UNAUTHORIZED)
+    
+        
+    def test_can_owner_favourite_listing(self):
+        verified_user = UserFactory(is_verified=True)
+        self.client.force_authenticate(user=verified_user)
+        listing_1 = ListingFactory(owner=verified_user, is_online=True,is_under_review=False)
+        
+        url = reverse("favourite-list-update",args=[listing_1.id])
+        
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code,status.HTTP_403_FORBIDDEN)
+        
+        
+    def test_favourite_listing_add_and_delete(self):
+        verified_user = UserFactory(is_verified=True)
+        self.client.force_authenticate(user=verified_user)
+        listing_1 = ListingFactory(is_online=True,is_under_review=False)
+        listing_2 = ListingFactory(is_online=True,is_under_review=False)
+        
+        url_listing_1 = reverse("favourite-list-update",args=[listing_1.id])
+        url_listing_2 = reverse("favourite-list-update",args=[listing_2.id])
+        
+        self.client.post(url_listing_1)
+        self.client.post(url_listing_2)
+        self.client.post(url_listing_1)
+        
+        
+        
+        self.assertEqual(verified_user.favourite_listings.count(),1)
+        self.assertEqual(verified_user.favourite_listings.first(),listing_2)
+        
+        
         
         
         
