@@ -1,6 +1,6 @@
 from rest_framework import generics
 from rest_framework.parsers import FormParser, MultiPartParser
-from config.mixins import ListingPermission, StaffPermission
+from config.mixins import ListingPermission, StaffPermission, UserPermission
 from rest_framework import filters
 from .models import Image, Listing, PriceHistory, ListingReport
 from django.db.models import F
@@ -16,7 +16,7 @@ from common.mail_services import send_email
 from .saved_search import listing_matches_any_saved_search
 
 class ListingCreateAndList(
-    # ListingPermission,
+    ListingPermission,
     generics.ListCreateAPIView):
     queryset = Listing.objects.online()
     serializer_class = ListingListDetailSerializer
@@ -26,8 +26,8 @@ class ListingCreateAndList(
     
     def perform_create(self, serializer):
         user = self.request.user
-        
-        if not user.is_authenticated or not user.is_verified:
+
+        if not user.is_verified:
             raise PermissionDenied("For uploading listings, you need to verify your account")
         
         serializer.save(owner=user)
@@ -38,7 +38,7 @@ class ListingCreateAndList(
 
 
 class ListingDetailUpdateDelete(
-    # ListingPermission,
+    ListingPermission,
     generics.RetrieveUpdateDestroyAPIView):
     queryset = Listing.objects.online()
     serializer_class = ListingSerializer
@@ -55,8 +55,9 @@ class ListingDetailUpdateDelete(
         
     
     def perform_update(self, serializer):
+        user = self.request.user
         listing = serializer.instance
-        if listing.owner != self.request.user and not self.request.user.is_staff:
+        if listing.owner != user and not user.is_staff:
             raise PermissionDenied("You are not the owner of this listing.")
         new_price = serializer.validated_data.get("price")
         if new_price is not None and new_price != listing.price:
@@ -68,7 +69,8 @@ class ListingDetailUpdateDelete(
             serializer.save(is_online=False, is_under_review=True)
     
     def perform_destroy(self, instance):
-        if instance.owner != self.request.user and not self.request.user.is_staff:
+        user = self.request.user
+        if instance.owner != user and not user.is_staff:
             raise PermissionDenied("You are not the owner of this listing.")
         for image in instance.images.exclude(storage_key=""):
             destroy_image(image.storage_key)
@@ -78,13 +80,13 @@ class ListingDetailUpdateDelete(
         
 # control view for user submited listings that is under review
 class ListingControlListView(
-    # StaffPermission,
+    StaffPermission,
     generics.ListAPIView):
     queryset = Listing.objects.is_under_review()
     serializer_class = ListingControlSerializer
     
 class ListingControlDetailView(
-    # StaffPermission,
+    StaffPermission,
     generics.RetrieveUpdateDestroyAPIView):
     queryset = Listing.objects.is_under_review()
     serializer_class = ListingControlSerializer
@@ -112,14 +114,14 @@ class ListingControlDetailView(
 
 # management for listings any listings
 class ListingManagementListView(
-    # StaffPermission,
+    StaffPermission,
     generics.ListCreateAPIView):
     queryset = Listing.objects.everything()
     serializer_class = ListingManagementSerializer
 
 
 class ListingManagementDetailUpdateDelete(
-    # StaffPermission,
+    StaffPermission,
     generics.RetrieveUpdateDestroyAPIView):
     queryset = Listing.objects.everything()
     serializer_class = ListingManagementSerializer
@@ -136,9 +138,13 @@ class FavouriteListingUpdate(
     def create(self, request, *args, **kwargs):
         user = request.user
         if not user.is_verified:
-            raise PermissionDenied("You need to be verified to favourite listing")
+            raise PermissionDenied("You need to be verified to favourite listings")
         listing_id = self.kwargs['pk']
         listing = Listing.objects.get(id=listing_id)
+        
+        if listing.owner == user:
+            raise PermissionDenied("You cannot favourite your own listing")
+            
         
         if user.favourite_listings.filter(id=listing_id).exists():
             user.favourite_listings.remove(listing)
@@ -150,7 +156,7 @@ class FavouriteListingUpdate(
                 
                 
 class FavouriteListView(
-    ListingPermission,
+    UserPermission,
     generics.ListAPIView):
     serializer_class = ListingSerializer
     
@@ -208,7 +214,7 @@ class RecommendedListings(generics.ListAPIView):
 
 
 class ListingByOwnerList(
-    ListingPermission,
+    UserPermission,
     generics.ListAPIView):  
     serializer_class = ListingSerializer
     
@@ -240,19 +246,20 @@ class ListingReportList(
     queryset = ListingReport.objects.all().order_by("-created_at")
 
 class ListingImageCreateView(
-    # ListingPermission,
+    UserPermission,
     generics.ListCreateAPIView):
     queryset = Image.objects.all()
     serializer_class = ListingImageCreateSerializer
     parser_classes = [MultiPartParser, FormParser]
 
     def perform_create(self, serializer):
-        if not self.request.user.is_verified:
+        user = self.request.user
+        if not user.is_verified:
             raise PermissionDenied("You need to be verified to create image")
         listing = serializer.validated_data.get("listing")
         image_file = serializer.validated_data.get("image")
-        # if listing.owner != self.request.user:
-        #     raise PermissionDenied("You are not the owner of this listing.")
+        if listing.owner != user:
+            raise PermissionDenied("You are not the owner of this listing.")
         
         if image_file:
            stored_image = create_image(image_file)
@@ -268,14 +275,14 @@ class ListingImageCreateView(
            listing.save(update_fields=["is_online", "is_under_review"])
 
 class ListingImageDestroyView(
-    # ListingPermission,
+    UserPermission,
     generics.RetrieveUpdateDestroyAPIView):
     queryset = Image.objects.all()
     serializer_class = ListingImageCreateSerializer
 
     def perform_destroy(self, instance):
-        # if instance.listing.owner != self.request.user and not self.request.user.is_staff:
-        #     raise PermissionDenied("You are not the owner of this image.")
+        if instance.listing.owner != self.request.user and not self.request.user.is_staff:
+            raise PermissionDenied("You are not the owner of this image.")
 
         if instance.storage_key:
             destroy_image(instance.storage_key)
