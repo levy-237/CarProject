@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from rest_framework import status
 from django.urls import reverse
 from listings.tests.factories import ListingFactory
@@ -10,6 +12,10 @@ from datetime import date
 class ListingViewsTests(APITestCase):
     def setUp(self):
         # ListingFactory.create_batch(10, is_online=False,is_premium=False,is_under_review=True)
+        self.send_email_patcher = patch("listings.views.send_email")
+        self.mock_send_email = self.send_email_patcher.start()
+        self.addCleanup(self.send_email_patcher.stop)
+
         self.url = reverse("listing-list")
         self.user_2 = UserFactory(is_verified=True)
         self.brand = CarBrandFactory()
