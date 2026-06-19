@@ -2,7 +2,7 @@ import factory
 from factory.django import DjangoModelFactory
 from datetime import date
 
-from listings.models import Listing
+from listings.models import Listing, Image
 from users.tests.factories import UserFactory
 from cars.tests.factories import (
     CarBodyTypeFactory,
@@ -31,3 +31,13 @@ class ListingFactory(DjangoModelFactory):
     is_premium = False
     is_under_review = False
     description = "This is a test listing"
+
+
+class ImageFactory(DjangoModelFactory):
+    class Meta:
+        model = Image
+
+    listing = factory.SubFactory(ListingFactory)
+    image = factory.Sequence(lambda n: f"https://cdn.example.com/image-{n}.jpg")
+    storage_key = factory.Sequence(lambda n: f"storage-key-{n}")
+    is_cover = False

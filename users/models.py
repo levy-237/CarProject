@@ -44,6 +44,7 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
     email_verification_code = models.CharField(max_length=128, blank=True,null=True)
     email_verification_code_date = models.DateTimeField(blank=True,null=True)
+    # need to put throttling for attempts to recover pass
     password_recovery_code = models.CharField(max_length=128, blank=True,null=True)
     password_recovery_code_date = models.DateTimeField(blank=True,null=True)
     is_private = models.BooleanField()
