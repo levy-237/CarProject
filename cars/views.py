@@ -35,6 +35,13 @@ class CarBrandList(VehicleDataPermission, generics.ListAPIView):
     queryset = CarBrand.objects.all()
     serializer_class = CarBrandSimpleSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        name = self.request.query_params.get("name")
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+        return queryset
+
 
 class CarBrandListCreate(VehicleDataPermission, generics.ListCreateAPIView):
     queryset = CarBrand.objects.all()
@@ -55,6 +62,9 @@ class CarModelList(VehicleDataPermission, generics.ListAPIView):
         relation = self.request.query_params.get("relation")
         if relation:
             queryset = queryset.filter(connected_brand_id=relation)
+        name = self.request.query_params.get("name")
+        if name:
+            queryset = queryset.filter(name__icontains=name)
         return queryset
 
 
@@ -77,6 +87,9 @@ class CarModelTrimList(VehicleDataPermission, generics.ListAPIView):
         relation = self.request.query_params.get("relation")
         if relation:
             queryset = queryset.filter(connected_model_id=relation)
+        name = self.request.query_params.get("name")
+        if name:
+            queryset = queryset.filter(name__icontains=name)
         return queryset
 
 
