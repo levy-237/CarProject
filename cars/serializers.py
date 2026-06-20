@@ -16,6 +16,12 @@ class CarBodyTypeSerializer(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
+class CarModelTrimNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CarModelTrim
+        fields = ["id", "name"]
+
+
 class CarModelTrimSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = CarModelTrim

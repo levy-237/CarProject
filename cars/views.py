@@ -11,9 +11,12 @@ from .models import (
 from .serializers import (
     CarBodyTypeSerializer,
     CarBrandSerializer,
+    CarBrandSimpleSerializer,
     CarConditionSerializer,
     CarDriveTrainSerializer,
     CarModelSerializer,
+    CarModelSimpleSerializer,
+    CarModelTrimNameSerializer,
     CarModelTrimSerializer,
 )
 
@@ -28,6 +31,11 @@ class CarBodyTypeDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPI
     serializer_class = CarBodyTypeSerializer
 
 
+class CarBrandList(VehicleDataPermission, generics.ListAPIView):
+    queryset = CarBrand.objects.all()
+    serializer_class = CarBrandSimpleSerializer
+
+
 class CarBrandListCreate(VehicleDataPermission, generics.ListCreateAPIView):
     queryset = CarBrand.objects.all()
     serializer_class = CarBrandSerializer
@@ -36,6 +44,18 @@ class CarBrandListCreate(VehicleDataPermission, generics.ListCreateAPIView):
 class CarBrandDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIView):
     queryset = CarBrand.objects.all()
     serializer_class = CarBrandSerializer
+
+
+class CarModelList(VehicleDataPermission, generics.ListAPIView):
+    queryset = CarModel.objects.all()
+    serializer_class = CarModelSimpleSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        relation = self.request.query_params.get("relation")
+        if relation:
+            queryset = queryset.filter(connected_brand_id=relation)
+        return queryset
 
 
 class CarModelListCreate(VehicleDataPermission, generics.ListCreateAPIView):
@@ -48,10 +68,21 @@ class CarModelDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIVie
     serializer_class = CarModelSerializer
 
 
+class CarModelTrimList(VehicleDataPermission, generics.ListAPIView):
+    queryset = CarModelTrim.objects.all()
+    serializer_class = CarModelTrimNameSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        relation = self.request.query_params.get("relation")
+        if relation:
+            queryset = queryset.filter(connected_model_id=relation)
+        return queryset
+
+
 class CarModelTrimListCreate(VehicleDataPermission, generics.ListCreateAPIView):
     queryset = CarModelTrim.objects.all()
     serializer_class = CarModelTrimSerializer
-
 
 
 class CarModelTrimDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIView):
