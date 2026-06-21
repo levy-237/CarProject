@@ -23,10 +23,14 @@ class CarModelTrimNameSerializer(serializers.ModelSerializer):
 
 
 class CarModelTrimSimpleSerializer(serializers.ModelSerializer):
+    drivetrain_name = serializers.CharField(source="drivetrain.name", read_only=True)
+
     class Meta:
         model = CarModelTrim
         fields = ["id",
                   "name",
+                  "drivetrain",
+                  "drivetrain_name",
                   "max_ac_charge_kw",
                   "max_dc_charge_kw",
                   "twenty_to_eighty_charge_min",

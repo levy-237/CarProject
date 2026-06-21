@@ -8,7 +8,7 @@ def listing_image_upload_to(instance, filename):
 
 
 class ListingsManager(models.Manager):
-    SELECT_RELATED_FIELDS = ["owner","brand","model","model_trim","body_type","condition"]
+    SELECT_RELATED_FIELDS = ["owner","brand","model","model_trim","model_trim__drivetrain","body_type","condition"]
     PREFETCH_RELATED_FIELDS = ["images","price_history"]
     
     def listing_optimization(self):

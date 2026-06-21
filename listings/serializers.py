@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 from .models import Image, Listing, PriceHistory, ListingReport
 from users.models import User
-from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,CarConditionSerializer,CarDriveTrainSerializer,CarBodyTypeSerializer,CarModelTrimSimpleSerializer
+from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,CarConditionSerializer,CarBodyTypeSerializer,CarModelTrimSimpleSerializer
 
 
 class ListingImageSerializer(serializers.ModelSerializer):
