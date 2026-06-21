@@ -21,6 +21,16 @@ from .serializers import (
 )
 
 
+def filter_by_relation(queryset, request, field_name):
+    relation = request.query_params.get("relation")
+    if not relation:
+        return queryset
+    relation_ids = [item.strip() for item in relation.split(",") if item.strip()]
+    if relation_ids:
+        queryset = queryset.filter(**{f"{field_name}__in": relation_ids})
+    return queryset
+
+
 class CarBodyTypeListCreate(VehicleDataPermission, generics.ListCreateAPIView):
     queryset = CarBodyType.objects.all()
     serializer_class = CarBodyTypeSerializer
@@ -59,9 +69,7 @@ class CarModelList(VehicleDataPermission, generics.ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        relation = self.request.query_params.get("relation")
-        if relation:
-            queryset = queryset.filter(connected_brand_id=relation)
+        queryset = filter_by_relation(queryset, self.request, "connected_brand_id")
         name = self.request.query_params.get("name")
         if name:
             queryset = queryset.filter(name__icontains=name)
@@ -84,9 +92,7 @@ class CarModelTrimList(VehicleDataPermission, generics.ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        relation = self.request.query_params.get("relation")
-        if relation:
-            queryset = queryset.filter(connected_model_id=relation)
+        queryset = filter_by_relation(queryset, self.request, "connected_model_id")
         name = self.request.query_params.get("name")
         if name:
             queryset = queryset.filter(name__icontains=name)
