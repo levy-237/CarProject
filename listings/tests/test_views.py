@@ -367,6 +367,14 @@ class ListingViewsTests(APITestCase):
         self.assertIn(description_match.id, result_ids)
         self.assertNotIn(unrelated_listing.id, result_ids)
         
+    def test_listing_list_counter(self):
+        ListingFactory.create_batch(10, is_online=True,is_under_review=False,price=10000)
+        ListingFactory.create_batch(10, is_online=True,is_under_review=False,price=20000)
+        
+        url = reverse("listing-list-counter")
+        response = self.client.get(url,{"minprice":9999,"maxprice":19999})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 10)
 
     
     # def test_filter_listings(self):

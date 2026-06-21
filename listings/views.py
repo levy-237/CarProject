@@ -34,9 +34,21 @@ class ListingCreateAndList(
         # change to admin
         send_email(to_name="Support", to_email="levanilominashvili23@gmail.com", subject="New Listing Created", text="A new listing has been created.")
 
+class ListingListCounter(
+    ListingPermission,
+    generics.ListAPIView,
+):
+    queryset = Listing.objects.online()
+    serializer_class = ListingSerializer  
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_class = ListingFilter
+    ordering_fields = ["price", "makeyear", "mileage", "publish_date"]
+    pagination_class = None  
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        return Response({"count": queryset.count()})
     
-
-
 class ListingDetailUpdateDelete(
     ListingPermission,
     generics.RetrieveUpdateDestroyAPIView):

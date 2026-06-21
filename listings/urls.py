@@ -1,11 +1,12 @@
 
 from django.urls import path
 
-from .views import ListingCreateAndList, ListingDetailUpdateDelete, ListingImageCreateView, ListingImageDestroyView, ListingByOwnerList, FavouriteListingUpdate, FavouriteListView, CompareListings,RecommendedListings, ListingControlListView, ListingControlDetailView, ListingManagementListView, ListingManagementDetailUpdateDelete, ListingReportCreateView, ListingReportList
+from .views import ListingCreateAndList, ListingDetailUpdateDelete, ListingImageCreateView, ListingImageDestroyView, ListingByOwnerList, FavouriteListingUpdate, FavouriteListView, CompareListings,RecommendedListings, ListingControlListView, ListingControlDetailView, ListingManagementListView, ListingManagementDetailUpdateDelete, ListingReportCreateView, ListingReportList, ListingListCounter
 
 urlpatterns = [
     path("", ListingCreateAndList.as_view(), name="listing-list"),
     path("<int:pk>/",ListingDetailUpdateDelete.as_view(), name="listing-detail"),
+    path("count/", ListingListCounter.as_view(), name="listing-list-counter"),
     path("control/", ListingControlListView.as_view(), name="listing-control"),
     path("control/<int:pk>/", ListingControlDetailView.as_view(), name="listing-control-detail"),
     path("management/", ListingManagementListView.as_view(), name="listing-management"),
