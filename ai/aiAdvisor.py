@@ -4,7 +4,7 @@ from django.conf import settings
 from ollama import Client
 
 
-def AiAdvisor(question):
+def AiAdvisor(question, history=None):
         
         brands = list(CarBrand.objects.values("id", "name"))
         models = list(CarModel.objects.values("id", "name", "connected_brand"))
@@ -35,6 +35,12 @@ Early exit (very important):
 - In that case return ONLY this exact JSON and nothing else:
 {"require_advisor": false}
 - Otherwise, build the normal filter plan described below and set "require_advisor": true in your output.
+
+Conversation history:
+- history may contain earlier turns with sender and message from the client.
+- question is always the latest user message.
+- Use history to interpret follow-ups such as "cheaper ones", "same but in Vienna", or "only SUVs".
+- Carry forward prior search intent from history and apply only the change in the latest question.
 
 Core rule:
 - hard_filters = explicit user requirements.
@@ -253,14 +259,15 @@ Return this exact JSON schema:
 """
         user_payload = {
             "question": question,
+            "history": history or [],
             "available_filters": {
-             "brands": brands,
-             "models": models,
-             "body_types": bodies,
-             "drivetrains": drivetrains,
-             "conditions": conditions,
-        },
-}
+                "brands": brands,
+                "models": models,
+                "body_types": bodies,
+                "drivetrains": drivetrains,
+                "conditions": conditions,
+            },
+        }
 
                 
         USER_QUESTION = json.dumps(user_payload, ensure_ascii=False)

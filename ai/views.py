@@ -94,15 +94,43 @@ def build_filter_data(hard_filters):
     return data
 
 
+def build_advisor_response(reply, matched_listings):
+    default = {
+        "message": "",
+        "listing_reasons": [],
+        "suggested_filter_relaxations": [],
+        "suggested_follow_up_questions": [],
+        "matched_listings": matched_listings,
+    }
+
+    try:
+        parsed = json.loads(reply)
+    except json.JSONDecodeError:
+        default["message"] = "Sorry, I couldn't format that response. Please try again."
+        default["parse_error"] = True
+        return default
+
+    default["message"] = parsed.get("message", "")
+    default["listing_reasons"] = parsed.get("listing_reasons", [])
+    default["suggested_filter_relaxations"] = parsed.get("suggested_filter_relaxations", [])
+    default["suggested_follow_up_questions"] = parsed.get("suggested_follow_up_questions", [])
+    return default
+
+
 class ChatBot(APIView):
     def post(self, request):
         base_queryset = Listing.objects.for_advisor()
         question = request.data.get("question")
-
+        history = request.data.get("history") or []
+        
         if not question:
-            return Response({"error": "Pass a question with ?q=..."}, status=400)
+            return Response({"error": "Pass a question in the JSON body as question."}, status=400)
 
-        advisor_response = AiAdvisor(question)
+
+        if not isinstance(history, list):
+            return Response({"error": "history must be a list."}, status=400)
+
+        advisor_response = AiAdvisor(question, history=history)
         # print(advisor_response)
         data = json.loads(advisor_response)
 
@@ -149,6 +177,11 @@ You are not allowed to invent listings, specs, prices, features, availability, b
 
 If the original_question is mostly German, the entire response must be in German.
 If the original_question is mostly English, respond in English.
+
+Conversation history:
+- history may contain earlier turns with sender and message from the client.
+- Use it to resolve follow-ups such as "the first one" or "cheaper options".
+- original_question is the latest user message.
 
 Return ONLY valid JSON.
 Do not use markdown.
@@ -250,11 +283,12 @@ Never say "the database says"; say "based on the available listing data".
 
 
         advisor_payload = {
-    "original_question": question,
-    "require_advisor": bool(require_advisor),
-    "soft_preferences": soft_preferences,
-    "matched_listings": matched_listings
-    }
+            "original_question": question,
+            "history": history,
+            "require_advisor": bool(require_advisor),
+            "soft_preferences": soft_preferences,
+            "matched_listings": matched_listings,
+        }
         
         ADVISOR_USER_PROMPT = json.dumps(advisor_payload, ensure_ascii=False)
         print(advisor_payload)
@@ -283,7 +317,7 @@ Never say "the database says"; say "based on the available listing data".
             reply += chunk
             
         print(reply)
-        return Response({"reply": reply})
+        return Response(build_advisor_response(reply, matched_listings))
 
 
 class Comparator(APIView):
