@@ -160,7 +160,7 @@ class ChatBot(APIView):
             if order_field:
                 listings = listings.order_by(order_field)
             serializer = ListingListDetailSerializer(
-                    listings[:15],
+                    listings[:4],
                     many=True,
                     context={"request": request},  
                 )
