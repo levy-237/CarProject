@@ -257,7 +257,7 @@ Field rules:
 - tradeoffs: possible downsides from listing data only.
 - warnings: missing/uncertain things the buyer should verify.
 - suggested_filter_relaxations: if results are weak, limited, or empty, suggest filters to relax.
-- suggested_follow_up_question: string. One next message the user might ask.
+- suggested_follow_up_question: string. ONE next chat message written exactly as the USER would type it — for a quick-reply button they tap to send as their next question. Use history and the current answer to pick something natural the buyer might ask next. Good: "Show me cheaper options", "Only with heat pump", "Same search in Vienna", "Tell me more about the first listing". Bad — never return these (these are YOU asking the user, not the user asking you): "What is your budget?", "Would you like to see more?", "Do you prefer range or price?", "What matters most to you?". Return "" if no good user message fits.
 
 If require_advisor is true and matched_listings is empty, return:
 {
