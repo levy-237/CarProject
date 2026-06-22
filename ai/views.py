@@ -99,7 +99,7 @@ def build_advisor_response(reply, matched_listings):
         "message": "",
         "listing_reasons": [],
         "suggested_filter_relaxations": [],
-        "suggested_follow_up_questions": [],
+        "suggested_follow_up_question": "",
         "matched_listings": matched_listings,
     }
 
@@ -113,7 +113,7 @@ def build_advisor_response(reply, matched_listings):
     default["message"] = parsed.get("message", "")
     default["listing_reasons"] = parsed.get("listing_reasons", [])
     default["suggested_filter_relaxations"] = parsed.get("suggested_filter_relaxations", [])
-    default["suggested_follow_up_questions"] = parsed.get("suggested_follow_up_questions", [])
+    default["suggested_follow_up_question"] = parsed.get("suggested_follow_up_question", "")
     return default
 
 
@@ -188,7 +188,7 @@ Do not use markdown.
 Do not include text outside the JSON.
 
 Conversation modes (decide first):
-- If require_advisor is false: the user did NOT ask for a listing search. There are no listings to discuss. Just answer the user's question helpfully and conversationally, but ONLY within the context of cars and electric vehicles (general EV advice, charging, batteries, ownership, buying guidance, how the marketplace works, etc.). Put your full reply in "message" and leave listing_reasons, suggested_filter_relaxations and suggested_follow_up_questions empty. Do NOT mention filters, matches, or "no results" in this mode. If the question is not about cars or electric vehicles at all, politely say you can only help with cars and electric vehicles.
+- If require_advisor is false: the user did NOT ask for a listing search. There are no listings to discuss. Just answer the user's question helpfully and conversationally, but ONLY within the context of cars and electric vehicles (general EV advice, charging, batteries, ownership, buying guidance, how the marketplace works, etc.). Put your full reply in "message" and leave listing_reasons, suggested_filter_relaxations empty and suggested_follow_up_question "". Do NOT mention filters, matches, or "no results" in this mode. If the question is not about cars or electric vehicles at all, politely say you can only help with cars and electric vehicles.
 - If require_advisor is true and matched_listings is empty: this WAS a listing search but nothing matched. Explain that no exact matches were found and suggest which filters could be relaxed.
 - If require_advisor is true and matched_listings is not empty: explain and rank the matched listings as described below.
 
@@ -225,7 +225,6 @@ Ranking logic:
 Message behavior:
 - The message must summarize the result in natural language.
 - If suggested_filter_relaxations is not empty, include the most useful 1-2 relaxations naturally in the message.
-- If suggested_follow_up_questions is not empty, include the most useful 1 follow-up question naturally at the end of the message.
 - Do not repeat every listing detail in message; listing-specific details belong in listing_reasons.
 - Keep message concise: usually 2-5 sentences.
 
@@ -244,11 +243,11 @@ Output schema:
     }
   ],
   "suggested_filter_relaxations": [],
-  "suggested_follow_up_questions": []
+  "suggested_follow_up_question": ""
 }
 
 Field rules:
-- message: short user-facing summary of what was found, how it matches the request, and any key relaxation/follow-up if useful.
+- message: short user-facing summary of what was found, how it matches the request, and any key relaxation if useful.
 - listing_reasons: include up to 5 best listings only.
 - listing_id: must match an ID from matched_listings.
 - rank: 1 is best.
@@ -258,14 +257,14 @@ Field rules:
 - tradeoffs: possible downsides from listing data only.
 - warnings: missing/uncertain things the buyer should verify.
 - suggested_filter_relaxations: if results are weak, limited, or empty, suggest filters to relax.
-- suggested_follow_up_questions: useful next questions the user could answer.
+- suggested_follow_up_question: string. One next message the user might ask.
 
 If require_advisor is true and matched_listings is empty, return:
 {
-  "message": "No exact matches were found. Try relaxing one or two requirements, for example increasing the budget, allowing more body types, lowering the range requirement, or widening the location. What is the most important requirement for you: price, range, space, or charging speed?",
+  "message": "No exact matches were found. Try relaxing one or two requirements, for example increasing the budget, allowing more body types, lowering the range requirement, or widening the location.",
   "listing_reasons": [],
   "suggested_filter_relaxations": ["Increase budget", "Allow more body types", "Lower range requirement", "Widen location"],
-  "suggested_follow_up_questions": ["What is the most important requirement for you: price, range, space, or charging speed?"]
+  "suggested_follow_up_question": ""
 }
 
 If require_advisor is false, return only a conversational car/EV answer, for example:
@@ -273,7 +272,7 @@ If require_advisor is false, return only a conversational car/EV answer, for exa
   "message": "<your helpful answer about cars or electric vehicles, in the user's language>",
   "listing_reasons": [],
   "suggested_filter_relaxations": [],
-  "suggested_follow_up_questions": []
+  "suggested_follow_up_question": ""
 }
 
 Never output IDs that were not provided.
