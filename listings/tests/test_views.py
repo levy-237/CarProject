@@ -376,6 +376,16 @@ class ListingViewsTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 10)
 
+    def test_listing_list_pagination_uses_default_page_size(self):
+        ListingFactory.create_batch(30, is_online=True, is_under_review=False)
+
+        url = reverse("listing-list")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 30)
+        self.assertEqual(len(response.data["results"]), 15)
+
     
     # def test_filter_listings(self):
     #     brand = CarBrandFactory()
