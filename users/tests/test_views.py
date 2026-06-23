@@ -53,3 +53,11 @@ class UserViewTests(APITestCase):
         city_ids = [city["id"] for city in response.data["results"]]
         self.assertIn(self.city.id, city_ids)
         self.assertNotIn(other_city.id, city_ids)
+        
+    def test_company_list_returns_companies(self):
+        UserFactory.create_batch(10, is_private=False)
+        UserFactory.create_batch(10, is_private=True)
+        
+        response = self.client.get(reverse("user-company-list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 10)

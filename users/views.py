@@ -34,7 +34,13 @@ class UserCreateView(generics.CreateAPIView):
         send_email(name, email, "Levanchiko says Hi!!!, Thanks for signing up on our beatiful website", "Thanks for signing up on our beatiful website!, i hope you enjoy in!")
         
         
-           
+class UserCompanyListView(
+    # UserPermission,
+    generics.ListAPIView
+):
+    queryset = User.objects.filter(is_private=False)
+    serializer_class = UserSerializer
+
 class UserDetailView(
     # UserPermission,
     generics.RetrieveUpdateDestroyAPIView):
