@@ -69,7 +69,7 @@ class SendEmailVerficationCode(
 
             
         if user.is_verified:
-            return Response({"error":"You are already verified"}, status=400)
+            return Response({"detail":"You are already verified"}, status=400)
         
         
         verification_code = generate_verification_code()
@@ -95,24 +95,24 @@ class VerifyUser(
 
             
         if not user.email_verification_code_date or not user.email_verification_code:
-            return Response({"error":"No verification request made!"},status=400)
+            return Response({"detail":"No verification request made!"},status=400)
                 
         time_now = timezone.now()
         time_difference = time_now - user.email_verification_code_date
         code = self.request.data.get("code")
         
         if user.is_verified:
-            return Response({"error":"You are already verified"}, status=400)
+            return Response({"detail":"You are already verified"}, status=400)
         
 
         if time_difference.total_seconds() > 600:
-            return Response({"error":"Verification code expired!"}, status=400)
+            return Response({"detail":"Verification code expired!"}, status=400)
         
         if not code:
-            return Response({"error":"Verification code is required!"}, status=400)
+            return Response({"detail":"Verification code is required!"}, status=400)
                 
         if not verify_code(code, user.email_verification_code):
-            return Response({"error":"Wrong verification code!"}, status=400)
+            return Response({"detail":"Wrong verification code!"}, status=400)
         
         user.is_verified = True
         user.email_verification_code = None
@@ -129,13 +129,13 @@ class SendPasswordRecoveryEmail(
         email = request.data.get("email")
         
         if not email:
-            return Response({"error":"Email is required!"}, status=400)
+            return Response({"detail":"Email is required!"}, status=400)
         
 
         user = User.objects.filter(email=email).first()
         
         if not user:
-            return Response({"error":"No email with this address was found"}, status=404)
+            return Response({"detail":"No email with this address was found"}, status=404)
         
         time_now = timezone.now()
         verification_code = generate_verification_code()
@@ -159,31 +159,31 @@ class RecoverPassword(
         code = self.request.data.get("code")
         
         if not email or not new_password or not code:
-            return Response({"error":"Email, new password and recovery code are required!"}, status=400)
+            return Response({"detail":"Email, new password and recovery code are required!"}, status=400)
         
         user = User.objects.filter(email=email).first()
         
         if not user:
-            return Response({"error":"User not found"}, status=404)
+            return Response({"detail":"User not found"}, status=404)
         
         if not user.password_recovery_code or not user.password_recovery_code_date:
-            return Response({"error":"You did not ask for recovery code"}, status=400)
+            return Response({"detail":"You did not ask for recovery code"}, status=400)
         
         if user.check_password(new_password):
-            return Response({"error":"This password has already been used in past"}, status=400)
+            return Response({"detail":"This password has already been used in past"}, status=400)
             
         
         if not code:
-            return Response({"error":"recovery code is required!"}, status=400)
+            return Response({"detail":"recovery code is required!"}, status=400)
             
         time_now = timezone.now()
         time_difference = time_now - user.password_recovery_code_date
         
         if time_difference.total_seconds() > 600:
-            return Response({"error":"Recovery code expired!"}, status=400)
+            return Response({"detail":"Recovery code expired!"}, status=400)
         
         if not verify_code(code, user.password_recovery_code):
-            return Response({"error":"wrong recovery code"}, status=400)
+            return Response({"detail":"wrong recovery code"}, status=400)
 
         
         user.password_recovery_code = None
@@ -206,13 +206,13 @@ class ChangePassword(
         user = request.user
         
         if not current_password or not new_password:
-            return Response({"error":"Both fields need to be provided!"}, status=400)
+            return Response({"detail":"Both fields need to be provided!"}, status=400)
         
         if not user.check_password(current_password):
-            return Response({"error":"password is wrong!"},status=400)
+            return Response({"detail":"password is wrong!"},status=400)
         
         if current_password == new_password:
-            return Response({"error":"This password has already been used in past"}, status=400)
+            return Response({"detail":"This password has already been used in past"}, status=400)
             
         
         user.set_password(new_password)
