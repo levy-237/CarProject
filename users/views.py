@@ -147,7 +147,12 @@ class SendPasswordRecoveryEmail(
         
         full_name =f"{user.first_name} {user.last_name}"
         
-        send_email(full_name,user.email,"Password recovery code", f"Your Password recovery code is here: {verification_code}")
+        send_email(
+            full_name,
+            user.email,
+            "Password recovery code",
+            f"Your password recovery for user {user.username} is here: {verification_code}",
+        )
         
         return Response({"message":"Password recovery code has been sent to email"})
 

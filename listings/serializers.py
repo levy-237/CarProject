@@ -65,7 +65,6 @@ class ListingSerializer(serializers.ModelSerializer):
     power = serializers.IntegerField(validators=[validate_IntValue])
     real_summer_range = serializers.IntegerField(validators=[validate_IntValue], required=False, allow_null=True)
     real_winter_range = serializers.IntegerField(validators=[validate_IntValue], required=False, allow_null=True)
-    is_favourite = serializers.SerializerMethodField(read_only=True)
     favourite_count = serializers.SerializerMethodField(read_only=True)
     
     
@@ -103,7 +102,6 @@ class ListingSerializer(serializers.ModelSerializer):
             "pickerl",
             "description",
             "view_count",
-            "is_favourite",
             "is_online",
             "is_premium",
             "is_sold",
@@ -118,7 +116,6 @@ class ListingSerializer(serializers.ModelSerializer):
             "images",
             "price_history",
             "view_count",
-            "is_favourite",
             "is_under_review",
             "is_online",
             "is_premium",
@@ -148,14 +145,6 @@ class ListingSerializer(serializers.ModelSerializer):
         if req is None:
             return None
         return reverse("listing-detail",kwargs={"pk": obj.pk},request=req)
-    
-    def get_is_favourite(self,obj):
-        req = self.context.get("request")
-        
-        if not req.user.is_authenticated: 
-            return False
-        
-        return req.user.favourite_listings.filter(id=obj.id).exists()
     
     def get_favourite_count(self,obj):
         favourite_by_count = obj.favourited_by.count()
