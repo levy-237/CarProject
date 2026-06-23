@@ -42,3 +42,14 @@ class UserViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["id"], user.id)
         self.assertEqual(response.data["email"], user.email)
+
+    def test_city_list_filters_by_province(self):
+        other_province = ProvinceFactory()
+        other_city = CityFactory(province=other_province)
+
+        response = self.client.get(reverse("city-list"), {"relation": self.province.id})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        city_ids = [city["id"] for city in response.data["results"]]
+        self.assertIn(self.city.id, city_ids)
+        self.assertNotIn(other_city.id, city_ids)

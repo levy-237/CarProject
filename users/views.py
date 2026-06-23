@@ -1,4 +1,5 @@
 from rest_framework import generics
+from common.query_helpers import filter_by_relation
 from .models import User, savedSearch, Province, City,ZipCode
 from .serializers import UserSerializer, SavedSeachSerializer, ProvinceSerializer, CitySerializer, ZipcodeSerializer
 from config.mixins import UserPermission
@@ -303,6 +304,10 @@ class CityList(
     generics.ListCreateAPIView):
     queryset = City.objects.all()
     serializer_class = CitySerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return filter_by_relation(queryset, self.request, "province_id")
     
 class CityDetailUpdateDestroy(
     # ListingPermission,
