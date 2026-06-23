@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 from .models import Image, Listing, PriceHistory, ListingReport
 from users.models import User
-from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,CarConditionSerializer,CarBodyTypeSerializer,CarModelTrimSimpleSerializer
+from cars.serializers import CarBrandSimpleSerializer,CarModelSimpleSerializer,CarConditionSerializer,CarBodyTypeSerializer,CarModelTrimSimpleSerializer,CarModelTrimSerializer
 
 
 class ListingImageSerializer(serializers.ModelSerializer):
@@ -57,7 +57,7 @@ class ListingSerializer(serializers.ModelSerializer):
     model_detail = CarModelSimpleSerializer(source="model", read_only=True)
     condition_detail = CarConditionSerializer(source="condition", read_only=True)
     body_type_detail = CarBodyTypeSerializer(source="body_type", read_only=True)
-    model_trim_detail = CarModelTrimSimpleSerializer(source="model_trim",read_only=True)
+    model_trim_detail = CarModelTrimSerializer(source="model_trim",read_only=True)
     price_history = PriceHistorySerializer(many=True,read_only=True)
     images = ListingImageSerializer(many=True,read_only=True)
     price = serializers.IntegerField(min_value=0)
