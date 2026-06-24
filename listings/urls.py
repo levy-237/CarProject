@@ -1,7 +1,7 @@
 
 from django.urls import path
 
-from .views import ListingCreateAndList, ListingDetailUpdateDelete, ListingImageCreateView, ListingImageDestroyView, ListingByOwnerList, FavouriteListingUpdate, FavouriteListView, CompareListings,RecommendedListings, ListingControlListView, ListingControlDetailView, ListingManagementListView, ListingManagementDetailUpdateDelete, ListingReportCreateView, ListingReportList, ListingListCounter
+from .views import ListingCreateAndList, ListingDetailUpdateDelete, ListingImageCreateView, ListingImageDestroyView, ListingByOwnerList, ListingByOwnerDetailView, FavouriteListingUpdate, FavouriteListView, CompareListings,RecommendedListings, ListingControlListView, ListingControlDetailView, ListingManagementListView, ListingManagementDetailUpdateDelete, ListingReportCreateView, ListingReportList, ListingListCounter
 
 urlpatterns = [
     path("", ListingCreateAndList.as_view(), name="listing-list"),
@@ -12,6 +12,7 @@ urlpatterns = [
     path("management/", ListingManagementListView.as_view(), name="listing-management"),
     path("management/<int:pk>/", ListingManagementDetailUpdateDelete.as_view(), name="listing-management-detail"),
     path("my/", ListingByOwnerList.as_view(), name="listing-by-owner-list"),
+    path("my/<int:pk>/", ListingByOwnerDetailView.as_view(), name="listing-by-owner-detail"),
     path("update-favourite/<int:pk>/", FavouriteListingUpdate.as_view(), name="favourite-list-update"),
     path("favourites/", FavouriteListView.as_view(), name="favourite-list"),
     path("compare/", CompareListings.as_view(), name="compare-list"),

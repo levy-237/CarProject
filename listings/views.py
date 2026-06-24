@@ -232,7 +232,14 @@ class ListingByOwnerList(
     
     def get_queryset(self):
         return Listing.objects.by_owner(user=self.request.user)
-    
+
+class ListingByOwnerDetailView(
+    UserPermission,
+    generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ListingSerializer
+    queryset = Listing.objects.by_owner(user=self.request.user)
+
+ 
 
 class ListingReportCreateView(
     # ListingPermission,
