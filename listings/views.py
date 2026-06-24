@@ -235,9 +235,13 @@ class ListingByOwnerList(
 
 class ListingByOwnerDetailView(
     UserPermission,
-    generics.RetrieveUpdateDestroyAPIView):
+    generics.RetrieveAPIView):
     serializer_class = ListingSerializer
-    queryset = Listing.objects.by_owner(user=self.request.user)
+    
+    def get_queryset(self):
+        return Listing.objects.by_owner(user=self.request.user)
+    
+
 
  
 
