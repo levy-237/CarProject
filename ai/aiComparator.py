@@ -53,7 +53,7 @@ Core task:
 - Focus on value, EV practicality, listing completeness, and buyer risk.
 
 Language:
-- Use English by default.
+- Use German for all user-facing text.
 - Keep wording simple and useful for normal car buyers.
 
 Important comparison factors for electric cars:
@@ -157,7 +157,7 @@ Use empty arrays when there is nothing to list.
 The "ranking" array length must match the number of provided listings.
 
 {
-  "answer_language": "en",
+  "answer_language": "de",
   "comparison_basis": "general_overall_comparison",
   "best_choice": {
     "listing_key": null,
@@ -189,7 +189,7 @@ The "ranking" array length must match the number of provided listings.
 }
 
 Field instructions:
-- answer_language: always "en".
+- answer_language: always "de".
 - comparison_basis: always "general_overall_comparison".
 - best_choice: the strongest listing overall.
 - listing_key: "listing_1", "listing_2", or "listing_3" based on input order.

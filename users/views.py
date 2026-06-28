@@ -5,7 +5,7 @@ from .serializers import UserSerializer, SavedSeachSerializer, ProvinceSerialize
 from config.mixins import UserPermission
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from listings.imagekit import create_image, destroy_image
-from common.mail_services import send_email
+from common.mail_services import send_email_safely
 from urllib.parse import parse_qs
 from .verification_code_generator import generate_verification_code
 from django.utils import timezone
@@ -31,7 +31,7 @@ class UserCreateView(generics.CreateAPIView):
         else:
             serializer.save()
         
-        send_email(name, email, "Levanchiko says Hi!!!, Thanks for signing up on our beatiful website", "Thanks for signing up on our beatiful website!, i hope you enjoy in!")
+        send_email_safely(name, email, "Levanchiko says Hi!!!, Thanks for signing up on our beatiful website", "Thanks for signing up on our beatiful website!, i hope you enjoy in!")
         
         
 class UserCompanyListView(
@@ -49,14 +49,14 @@ class UserDetailView(
     
     def perform_update(self, serializer):
         user = serializer.instance
-        if user != self.request.user and not self.request.user.is_staff:
-            raise PermissionDenied("You can only edit your own profile")
+        # if user != self.request.user and not self.request.user.is_staff:
+        #     raise PermissionDenied("You can only edit your own profile")
         
         serializer.save()
     
     def perform_destroy(self,instance):
         if self.request.user != instance and not self.request.user.is_staff: 
-            raise PermissionDenied("You can only delete your own profile!")
+            raise PermissionDenied("Du kannst nur dein eigenes Profil löschen.")
         
         if instance.storage_key:
             destroy_image(instance.storage_key)
@@ -75,7 +75,7 @@ class SendEmailVerficationCode(
 
             
         if user.is_verified:
-            return Response({"detail":"You are already verified"}, status=400)
+            return Response({"detail":"Du bist bereits verifiziert."}, status=400)
         
         
         verification_code = generate_verification_code()
@@ -85,9 +85,9 @@ class SendEmailVerficationCode(
 
         full_name =f"{user.first_name} {user.last_name}"
         
-        send_email(full_name,user.email,"Verificaition code", f"Your verification code is here: {verification_code}")
+        send_email_safely(full_name,user.email,"Verificaition code", f"Your verification code is here: {verification_code}")
         
-        return Response({"message":"Verification code has been sent to email"})
+        return Response({"message":"Der Verifizierungscode wurde per E-Mail gesendet."})
 
         
         
@@ -101,24 +101,24 @@ class VerifyUser(
 
             
         if not user.email_verification_code_date or not user.email_verification_code:
-            return Response({"detail":"No verification request made!"},status=400)
+            return Response({"detail":"Es wurde keine Verifizierungsanfrage gestellt."},status=400)
                 
         time_now = timezone.now()
         time_difference = time_now - user.email_verification_code_date
         code = self.request.data.get("code")
         
         if user.is_verified:
-            return Response({"detail":"You are already verified"}, status=400)
+            return Response({"detail":"Du bist bereits verifiziert."}, status=400)
         
 
         if time_difference.total_seconds() > 600:
-            return Response({"detail":"Verification code expired!"}, status=400)
+            return Response({"detail":"Der Verifizierungscode ist abgelaufen."}, status=400)
         
         if not code:
-            return Response({"detail":"Verification code is required!"}, status=400)
+            return Response({"detail":"Der Verifizierungscode ist erforderlich."}, status=400)
                 
         if not verify_code(code, user.email_verification_code):
-            return Response({"detail":"Wrong verification code!"}, status=400)
+            return Response({"detail":"Falscher Verifizierungscode."}, status=400)
         
         user.is_verified = True
         user.email_verification_code = None
@@ -126,7 +126,7 @@ class VerifyUser(
         
         user.save(update_fields=["is_verified","email_verification_code","email_verification_code_date"])
         
-        return Response({"message":"Succeefully verified User!"})
+        return Response({"message":"Benutzer wurde erfolgreich verifiziert."})
     
 
 class SendPasswordRecoveryEmail(
@@ -135,13 +135,13 @@ class SendPasswordRecoveryEmail(
         email = request.data.get("email")
         
         if not email:
-            return Response({"detail":"Email is required!"}, status=400)
+            return Response({"detail":"E-Mail ist erforderlich."}, status=400)
         
 
         user = User.objects.filter(email=email).first()
         
         if not user:
-            return Response({"detail":"No email with this address was found"}, status=404)
+            return Response({"detail":"Es wurde kein Konto mit dieser E-Mail-Adresse gefunden."}, status=404)
         
         time_now = timezone.now()
         verification_code = generate_verification_code()
@@ -153,14 +153,14 @@ class SendPasswordRecoveryEmail(
         
         full_name =f"{user.first_name} {user.last_name}"
         
-        send_email(
+        send_email_safely(
             full_name,
             user.email,
             "Password recovery code",
             f"Your password recovery for user {user.username} is here: {verification_code}",
         )
         
-        return Response({"message":"Password recovery code has been sent to email"})
+        return Response({"message":"Der Code zur Passwortwiederherstellung wurde per E-Mail gesendet."})
 
 class RecoverPassword(
     APIView):
@@ -170,31 +170,31 @@ class RecoverPassword(
         code = self.request.data.get("code")
         
         if not email or not new_password or not code:
-            return Response({"detail":"Email, new password and recovery code are required!"}, status=400)
+            return Response({"detail":"E-Mail, neues Passwort und Wiederherstellungscode sind erforderlich."}, status=400)
         
         user = User.objects.filter(email=email).first()
         
         if not user:
-            return Response({"detail":"User not found"}, status=404)
+            return Response({"detail":"Benutzer wurde nicht gefunden."}, status=404)
         
         if not user.password_recovery_code or not user.password_recovery_code_date:
-            return Response({"detail":"You did not ask for recovery code"}, status=400)
+            return Response({"detail":"Es wurde kein Wiederherstellungscode angefordert."}, status=400)
         
         if user.check_password(new_password):
-            return Response({"detail":"This password has already been used in past"}, status=400)
+            return Response({"detail":"Dieses Passwort wurde bereits verwendet."}, status=400)
             
         
         if not code:
-            return Response({"detail":"recovery code is required!"}, status=400)
+            return Response({"detail":"Der Wiederherstellungscode ist erforderlich."}, status=400)
             
         time_now = timezone.now()
         time_difference = time_now - user.password_recovery_code_date
         
         if time_difference.total_seconds() > 600:
-            return Response({"detail":"Recovery code expired!"}, status=400)
+            return Response({"detail":"Der Wiederherstellungscode ist abgelaufen."}, status=400)
         
         if not verify_code(code, user.password_recovery_code):
-            return Response({"detail":"wrong recovery code"}, status=400)
+            return Response({"detail":"Falscher Wiederherstellungscode."}, status=400)
 
         
         user.password_recovery_code = None
@@ -203,7 +203,7 @@ class RecoverPassword(
         
         user.save(update_fields=["password_recovery_code","password_recovery_code_date","password"])
         
-        return Response({"message":"Succeefully Recovevered your password!"})
+        return Response({"message":"Dein Passwort wurde erfolgreich wiederhergestellt."})
         
         
 class ChangePassword(
@@ -217,20 +217,20 @@ class ChangePassword(
         user = request.user
         
         if not current_password or not new_password:
-            return Response({"detail":"Both fields need to be provided!"}, status=400)
+            return Response({"detail":"Beide Felder müssen angegeben werden."}, status=400)
         
         if not user.check_password(current_password):
-            return Response({"detail":"password is wrong!"},status=400)
+            return Response({"detail":"Das Passwort ist falsch."},status=400)
         
         if current_password == new_password:
-            return Response({"detail":"This password has already been used in past"}, status=400)
+            return Response({"detail":"Dieses Passwort wurde bereits verwendet."}, status=400)
             
         
         user.set_password(new_password)
         
         user.save(update_fields=["password"])
         
-        return Response({"message":"Your password has been successfully changed!"})
+        return Response({"message":"Dein Passwort wurde erfolgreich geändert."})
         
         
 class UserMeView(
@@ -283,14 +283,14 @@ class SavedSearchDetailUpdateDelete(
         savedSearch = serializer.instance
         
         if savedSearch.owner != self.request.user and not self.request.user.is_staff:
-            raise PermissionDenied("you are not owner of this saved search")
+            raise PermissionDenied("Du bist nicht der Besitzer dieser gespeicherten Suche.")
         
         serializer.save()
             
         
     def perform_destroy(self, instance):
         if instance.owner != self.request.user and not self.request.user.is_staff:
-           raise PermissionDenied("You are not owner of this saved search")
+           raise PermissionDenied("Du bist nicht der Besitzer dieser gespeicherten Suche.")
 
         instance.delete()
             

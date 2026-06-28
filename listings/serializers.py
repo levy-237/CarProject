@@ -36,7 +36,7 @@ class ListingImageCreateSerializer(serializers.ModelSerializer):
 def validate_IntValue(value):
     if value is not None and value <= 0:
         raise serializers.ValidationError(
-            {"value": "value can not be less than 1."}
+            {"value": "Der Wert darf nicht kleiner als 1 sein."}
         )
 
 
@@ -131,11 +131,11 @@ class ListingSerializer(serializers.ModelSerializer):
  
         if brand and model and model.connected_brand_id != brand.id:
             raise serializers.ValidationError(
-                {"model": "Selected model does not belong to the selected brand."}
+                {"model": "Das ausgewählte Modell gehört nicht zur ausgewählten Marke."}
             )
         if model and model_trim and model_trim.connected_model_id != model.id:
             raise serializers.ValidationError(
-                {"model": "Selected model does not belong to the selected brand."}
+                {"model": "Die ausgewählte Ausstattung gehört nicht zum ausgewählten Modell."}
             )          
 
         return data

@@ -1,6 +1,10 @@
+import logging
+
 from django.conf import settings
 from mailjet_rest import Client
 from rest_framework.exceptions import ValidationError
+
+logger = logging.getLogger(__name__)
 
 
 def get_mailjet_client():
@@ -8,14 +12,14 @@ def get_mailjet_client():
     api_secret = settings.MAILJET_API_SECRET
 
     if not api_key or not api_secret:
-        raise ValidationError({"mailjet": "Mailjet API keys are not configured."})
+        raise ValidationError({"mailjet": "Die Mailjet-API-Schlüssel sind nicht konfiguriert."})
 
     return Client(auth=(api_key, api_secret), version="v3.1")
 
 
 def send_email(to_name, to_email, subject, text):
     if not settings.MAILJET_SENDER_EMAIL:
-        raise ValidationError({"mailjet": "Mailjet sender email is not configured."})
+        raise ValidationError({"mailjet": "Die Mailjet-Absenderadresse ist nicht konfiguriert."})
 
     data = {
         "Messages": [
@@ -43,3 +47,11 @@ def send_email(to_name, to_email, subject, text):
         raise ValidationError({"mailjet": result.json()})
 
     return result
+
+
+def send_email_safely(*args, error_message="Failed to send email", **kwargs):
+    try:
+        return send_email(*args, **kwargs)
+    except Exception:
+        logger.exception(error_message)
+        return None

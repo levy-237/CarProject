@@ -45,13 +45,13 @@ class ChatDetailUpdateDeleteView(
     def perform_update(self, serializer):
         chat = serializer.instance
         if chat.sender != self.request.user and not self.request.user.is_staff:
-            raise PermissionDenied("You are not the owner of this chat.")
+            raise PermissionDenied("Du bist nicht der Besitzer dieses Chats.")
 
         serializer.save()
 
     def perform_destroy(self, instance):
         if instance.sender != self.request.user and not self.request.user.is_staff:
-            raise PermissionDenied("You are not the owner of this chat.")
+            raise PermissionDenied("Du bist nicht der Besitzer dieses Chats.")
 
         instance.delete()
 
@@ -78,7 +78,7 @@ class MessageListCreateView(
         user = self.request.user
 
         if chat.sender != user and chat.recipient != user:
-            raise PermissionDenied("You are not a member of this chat.")
+            raise PermissionDenied("Du bist kein Mitglied dieses Chats.")
 
         serializer.save(sender=user)
 
@@ -102,16 +102,16 @@ class MessageDetailUpdateDeleteView(
     def perform_update(self, serializer):
         message = serializer.instance
         if message.sender != self.request.user and not self.request.user.is_staff:
-            raise PermissionDenied("You are not the owner of this message.")
+            raise PermissionDenied("Du bist nicht der Besitzer dieser Nachricht.")
 
         chat = serializer.validated_data.get("chat", message.chat)
         if not self.request.user.is_staff and chat.sender != self.request.user and chat.recipient != self.request.user:
-            raise PermissionDenied("You are not a member of this chat.")
+            raise PermissionDenied("Du bist kein Mitglied dieses Chats.")
 
         serializer.save()
 
     def perform_destroy(self, instance):
         if instance.sender != self.request.user and not self.request.user.is_staff:
-            raise PermissionDenied("You are not the owner of this message.")
+            raise PermissionDenied("Du bist nicht der Besitzer dieser Nachricht.")
 
         instance.delete()

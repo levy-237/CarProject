@@ -53,18 +53,18 @@ class UserSerializer(serializers.ModelSerializer):
         
         if province and city and city.province_id != province.id:
             raise serializers.ValidationError(
-                {"location": "Selected city does not belong to the selected province."}
+                {"location": "Die ausgewählte Stadt gehört nicht zum ausgewählten Bundesland."}
             )
             
         if is_private is not None and not is_private and not company_name:
             raise serializers.ValidationError(
-                {"company_name": "non private users need to have company name"}
+                {"company_name": "Nicht private Benutzer müssen einen Firmennamen angeben."}
             )
         return data
         
     def validate_password(self, value):
         if len(value) < 8:
-            raise serializers.ValidationError("Password must be at least 8 characters long")
+            raise serializers.ValidationError("Das Passwort muss mindestens 8 Zeichen lang sein.")
         return value
     
     def create(self, validated_data):

@@ -12,7 +12,7 @@ from datetime import date
 class ListingViewsTests(APITestCase):
     def setUp(self):
         # ListingFactory.create_batch(10, is_online=False,is_premium=False,is_under_review=True)
-        self.send_email_patcher = patch("listings.views.send_email")
+        self.send_email_patcher = patch("listings.views.send_email_safely")
         self.mock_send_email = self.send_email_patcher.start()
         self.addCleanup(self.send_email_patcher.stop)
 

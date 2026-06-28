@@ -7,7 +7,7 @@ def get_imagekit_client():
     private_key = settings.IMAGEKIT_PRIVATE_KEY
 
     if not private_key:
-        raise ValidationError({"imagekit": "ImageKit private key is not configured."})
+        raise ValidationError({"imagekit": "Der private ImageKit-Schlüssel ist nicht konfiguriert."})
 
     return ImageKit(private_key=private_key)
 
@@ -21,13 +21,13 @@ def create_image(image_file):
             use_unique_file_name=True,
         )
     except Exception as exc:
-        raise ValidationError({"image": f"ImageKit upload failed: {exc}"}) from exc
+        raise ValidationError({"image": f"Der ImageKit-Upload ist fehlgeschlagen: {exc}"}) from exc
 
     url = response.url
     file_id = response.file_id
 
     if not url or not file_id:
-        raise ValidationError({"image": "ImageKit upload response is missing file data."})
+        raise ValidationError({"image": "In der ImageKit-Upload-Antwort fehlen Dateidaten."})
 
     return response
 
@@ -39,4 +39,4 @@ def destroy_image(file_id):
     try:
         get_imagekit_client().files.delete(file_id)
     except Exception as exc:
-        raise ValidationError({"image": f"ImageKit delete failed: {exc}"}) from exc
+        raise ValidationError({"image": f"Das Löschen bei ImageKit ist fehlgeschlagen: {exc}"}) from exc

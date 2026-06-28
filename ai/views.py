@@ -106,7 +106,7 @@ def build_advisor_response(reply, matched_listings):
     try:
         parsed = json.loads(reply)
     except json.JSONDecodeError:
-        default["message"] = "Sorry, I couldn't format that response. Please try again."
+        default["message"] = "Entschuldigung, ich konnte diese Antwort nicht richtig formatieren. Bitte versuche es erneut."
         default["parse_error"] = True
         return default
 
@@ -124,11 +124,11 @@ class ChatBot(APIView):
         history = request.data.get("history") or []
         
         if not question:
-            return Response({"error": "Pass a question in the JSON body as question."}, status=400)
+            return Response({"error": "Bitte übergib die Frage im JSON-Body als question."}, status=400)
 
 
         if not isinstance(history, list):
-            return Response({"error": "history must be a list."}, status=400)
+            return Response({"error": "history muss eine Liste sein."}, status=400)
 
         advisor_response = AiAdvisor(question, history=history)
         # print(advisor_response)
@@ -175,8 +175,7 @@ Your job is to explain matched electric-car listings to the user based ONLY on t
 
 You are not allowed to invent listings, specs, prices, features, availability, battery health, accident history, service history, warranty, or seller claims.
 
-If the original_question is mostly German, the entire response must be in German.
-If the original_question is mostly English, respond in English.
+The entire user-facing response must be in German.
 
 Conversation history:
 - history may contain earlier turns with sender and message from the client.
@@ -195,7 +194,7 @@ Conversation modes (decide first):
 Tone:
 - Helpful, clear, practical.
 - Short and buyer-focused.
-- Use the same language as the user if obvious. If the user writes German, answer in German. If English, answer in English.
+- Always answer in German.
 - Do not sound overly certain. Use phrases like "based on the available listing data".
 
 Core rules:
@@ -261,15 +260,15 @@ Field rules:
 
 If require_advisor is true and matched_listings is empty, return:
 {
-  "message": "No exact matches were found. Try relaxing one or two requirements, for example increasing the budget, allowing more body types, lowering the range requirement, or widening the location.",
+  "message": "Es wurden keine genauen Treffer gefunden. Versuche, eine oder zwei Anforderungen zu lockern, zum Beispiel das Budget zu erhöhen, mehr Karosserieformen zuzulassen, die Reichweitenanforderung zu senken oder den Standort zu erweitern.",
   "listing_reasons": [],
-  "suggested_filter_relaxations": ["Increase budget", "Allow more body types", "Lower range requirement", "Widen location"],
+  "suggested_filter_relaxations": ["Budget erhöhen", "Mehr Karosserieformen zulassen", "Reichweitenanforderung senken", "Standort erweitern"],
   "suggested_follow_up_question": ""
 }
 
 If require_advisor is false, return only a conversational car/EV answer, for example:
 {
-  "message": "<your helpful answer about cars or electric vehicles, in the user's language>",
+  "message": "<deine hilfreiche Antwort über Autos oder Elektrofahrzeuge auf Deutsch>",
   "listing_reasons": [],
   "suggested_filter_relaxations": [],
   "suggested_follow_up_question": ""
@@ -324,12 +323,12 @@ class Comparator(APIView):
         ids_arr = request.data.get("question")
         
         if not ids_arr or len(ids_arr) < 2:
-            return Response({"detail":"Please provide at least two listings"}, status=400)
+            return Response({"detail":"Bitte gib mindestens zwei Inserate an."}, status=400)
             
         listings = Listing.objects.online().filter(id__in = ids_arr)
         
         if not listings or listings.count() < 2:
-            return Response({"detail":"at least two listings could not be found"}, status=400)
+            return Response({"detail":"Mindestens zwei Inserate konnten nicht gefunden werden."}, status=400)
         
         serializer = ListingListDetailSerializer(
             listings,

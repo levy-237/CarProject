@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from .imagekit import create_image, destroy_image
-from common.mail_services import send_email
+from common.mail_services import send_email_safely
 from .saved_search import listing_matches_any_saved_search
 
 class ListingCreateAndList(
@@ -28,11 +28,11 @@ class ListingCreateAndList(
         user = self.request.user
 
         if not user.is_verified:
-            raise PermissionDenied("For uploading listings, you need to verify your account")
+            raise PermissionDenied("Um Inserate hochzuladen, musst du dein Konto verifizieren.")
         
         serializer.save(owner=user)
         # change to admin
-        send_email(to_name="Support", to_email="levanilominashvili23@gmail.com", subject="New Listing Created", text="A new listing has been created.")
+        send_email_safely(to_name="Support", to_email="levanilominashvili23@gmail.com", subject="New Listing Created", text="A new listing has been created.")
 
 class ListingListCounter(
     ListingPermission,
@@ -70,7 +70,7 @@ class ListingDetailUpdateDelete(
         user = self.request.user
         listing = serializer.instance
         if listing.owner != user and not user.is_staff:
-            raise PermissionDenied("You are not the owner of this listing.")
+            raise PermissionDenied("Du bist nicht der Besitzer dieses Inserats.")
         new_price = serializer.validated_data.get("price")
         if new_price is not None and new_price != listing.price:
             PriceHistory.objects.create(listing=listing, old_price=listing.price)
@@ -83,7 +83,7 @@ class ListingDetailUpdateDelete(
     def perform_destroy(self, instance):
         user = self.request.user
         if instance.owner != user and not user.is_staff:
-            raise PermissionDenied("You are not the owner of this listing.")
+            raise PermissionDenied("Du bist nicht der Besitzer dieses Inserats.")
         for image in instance.images.exclude(storage_key=""):
             destroy_image(image.storage_key)
 
@@ -115,12 +115,13 @@ class ListingControlDetailView(
         if is_online:
             users_with_alerts = listing_matches_any_saved_search(listing)
             # to the owner  
-            send_email(to_name=owner.username, to_email=owner.email, subject="Listing Online", text="A listing has been taken online.")
+            send_email_safely(to_name=owner.username, to_email=owner.email, subject="Listing Online", text="A listing has been taken online.")
             # checking saved searches
             if(users_with_alerts and len(users_with_alerts) > 0):
                 for saved_search in users_with_alerts:
-                    send_email(to_name=saved_search.owner.username, to_email=saved_search.owner.email, subject=f"new listing for saved search: {saved_search.name}", text=f"There is new listing online that matches your search agent! {saved_search.name}")
-                    print(f"sucessfully sent mail to {saved_search.owner.email}")
+                    email_result = send_email_safely(to_name=saved_search.owner.username, to_email=saved_search.owner.email, subject=f"new listing for saved search: {saved_search.name}", text=f"There is new listing online that matches your search agent! {saved_search.name}")
+                    if email_result:
+                        print(f"sucessfully sent mail to {saved_search.owner.email}")
                     
 
 
@@ -141,7 +142,7 @@ class ListingManagementDetailUpdateDelete(
 
 class ListingMostViewedView(generics.ListAPIView):
     permission_classes = []
-    serializer_class = ListingSerializer
+    serializer_class = ListingListDetailSerializer
     queryset = Listing.objects.online().order_by("-view_count")[:9]
 
 
@@ -154,59 +155,59 @@ class FavouriteListingUpdate(
     def create(self, request, *args, **kwargs):
         user = request.user
         if not user.is_verified:
-            raise PermissionDenied("You need to be verified to favourite listings")
+            raise PermissionDenied("Du musst verifiziert sein, um Inserate zu favorisieren.")
         listing_id = self.kwargs['pk']
         listing = Listing.objects.get(id=listing_id)
         
         if listing.owner == user:
-            raise PermissionDenied("You cannot favourite your own listing")
+            raise PermissionDenied("Du kannst dein eigenes Inserat nicht favorisieren.")
             
         
         if user.favourite_listings.filter(id=listing_id).exists():
             user.favourite_listings.remove(listing)
-            return Response({"data":"Successfully removed from favourites"}, status=status.HTTP_200_OK)
+            return Response({"data":"Erfolgreich aus den Favoriten entfernt."}, status=status.HTTP_200_OK)
         
         user.favourite_listings.add(listing)
-        return Response({"data": "Added to favourites."}, status=status.HTTP_201_CREATED)
+        return Response({"data": "Zu den Favoriten hinzugefügt."}, status=status.HTTP_201_CREATED)
 
                 
                 
 class FavouriteListView(
     UserPermission,
     generics.ListAPIView):
-    serializer_class = ListingSerializer
+    serializer_class = ListingListDetailSerializer
     
     def get_queryset(self):
         return self.request.user.favourite_listings.all()
     
 
 class CompareListings(generics.ListAPIView):
-    serializer_class = ListingSerializer
+    serializer_class = ListingListDetailSerializer
     def get_queryset(self):
         queryset = Listing.objects.online()
         ids = self.request.query_params.get("ids")
         
         if not ids:
-            raise ValidationError({"error":"id needs to be present"})
+            raise ValidationError({"error":"Eine ID muss angegeben werden."})
         
         listing_ids = [item.strip() for item in ids.split(",") if item.strip()]
         
         if len(listing_ids) > 3:
-            raise ValidationError({"error":"maximum of 3 listings can be compared"})
+            raise ValidationError({"error":"Es können maximal 3 Inserate verglichen werden."})
         
         
         return queryset.filter(id__in=listing_ids)
         
         
 class RecommendedListings(generics.ListAPIView):
-    serializer_class = ListingSerializer
+    serializer_class = ListingListDetailSerializer
     
     def get_queryset(self):
         queryset = Listing.objects.online()
         ids = self.request.query_params.get("id")
         
         if not ids:
-            raise ValidationError({"error":"id needs to be present"})
+            raise ValidationError({"error":"Eine ID muss angegeben werden."})
         
         listing_ids = [item.strip() for item in ids.split(",") if item.strip()]
         selected_listings = Listing.objects.filter(id__in=listing_ids)
@@ -232,7 +233,7 @@ class RecommendedListings(generics.ListAPIView):
 class ListingByOwnerList(
     UserPermission,
     generics.ListAPIView):  
-    serializer_class = ListingSerializer
+    serializer_class = ListingListDetailSerializer
     
     def get_queryset(self):
         return Listing.objects.by_owner(user=self.request.user)
@@ -262,7 +263,7 @@ class ListingReportCreateView(
         reporter = user if user.is_authenticated else None
         
         if  previous_reports >= 9:
-            send_email(to_name="Support", to_email="levanilominashvili23@gmail.com", subject="Listing Reported", text=f"A listing has been reported {previous_reports} times.")
+            send_email_safely(to_name="Support", to_email="levanilominashvili23@gmail.com", subject="Listing Reported", text=f"A listing has been reported {previous_reports} times.")
         
         serializer.save(reported_by=reporter, listing=listing)
 

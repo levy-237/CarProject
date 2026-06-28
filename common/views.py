@@ -4,9 +4,8 @@ from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.exceptions import ValidationError
 
-from .mail_services import send_email
+from .mail_services import send_email_safely
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -22,20 +21,19 @@ class TestEmailView(View):
 
         if not to_name or not to_email or not subject or not text:
             return HttpResponse(
-                self._render_form("Please fill in all fields.", is_error=True),
+                self._render_form("Bitte fülle alle Felder aus.", is_error=True),
                 status=400,
             )
 
-        try:
-            result = send_email(to_name, to_email, subject, text)
-        except ValidationError as exc:
+        result = send_email_safely(to_name, to_email, subject, text)
+        if not result:
             return HttpResponse(
-                self._render_form(f"Mailjet error: {exc.detail}", is_error=True),
+                self._render_form("Die E-Mail konnte nicht gesendet werden.", is_error=True),
                 status=400,
             )
 
         return HttpResponse(
-            self._render_form(f"Email sent. Mailjet status: {result.status_code}")
+            self._render_form(f"E-Mail gesendet. Mailjet-Status: {result.status_code}")
         )
 
     def _render_form(self, message=None, is_error=False):
@@ -49,10 +47,10 @@ class TestEmailView(View):
         <!doctype html>
         <html>
             <head>
-                <title>Test Email</title>
+                <title>Test-E-Mail</title>
             </head>
             <body>
-                <h1>Test Mailjet Email</h1>
+                <h1>Mailjet-Test-E-Mail</h1>
                 {message_html}
                 <form method="post">
                     <p>
@@ -60,18 +58,18 @@ class TestEmailView(View):
                         <input name="to_name" required>
                     </p>
                     <p>
-                        <label>Email</label><br>
+                        <label>E-Mail</label><br>
                         <input name="to_email" type="email" required>
                     </p>
                     <p>
-                        <label>Subject</label><br>
+                        <label>Betreff</label><br>
                         <input name="subject" required>
                     </p>
                     <p>
-                        <label>Message</label><br>
+                        <label>Nachricht</label><br>
                         <textarea name="text" rows="6" cols="50" required></textarea>
                     </p>
-                    <button type="submit">Send test email</button>
+                    <button type="submit">Test-E-Mail senden</button>
                 </form>
             </body>
         </html>

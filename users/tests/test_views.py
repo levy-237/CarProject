@@ -14,7 +14,7 @@ class UserViewTests(APITestCase):
 
         self.city = CityFactory(province=self.province)
 
-    @patch("users.views.send_email")
+    @patch("users.views.send_email_safely")
     def test_register_creates_user(self, mock_send_email):
         payload = {
             "username": "newuser",
