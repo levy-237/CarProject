@@ -183,6 +183,25 @@ class ListingViewsTests(APITestCase):
         
         self.assertEqual(Listing.objects.first().view_count,1)
         
+    def test_listing_most_viewed(self):
+        verified_user = self.authenticate_user()
+        listings1 = ListingFactory.create_batch(8, is_online=True,is_under_review=False,view_count=10)
+        listings2 = ListingFactory.create_batch(8, is_online=True,is_under_review=False)
+        url = reverse("listing-most-viewed")
+        response = self.client.get(url)
+        result_ids = [listing["id"] for listing in response.data["results"]]
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["results"]), 8)
+        self.assertIn(listings1[0].id, result_ids)
+        self.assertIn(listings1[3].id, result_ids)
+        self.assertNotIn(listings2[0].id, result_ids)
+        self.assertNotIn(listings2[3].id, result_ids)
+
+        
+        
+        
+
+        
     def test_price_history_update(self):
         verified_user = self.authenticate_user()
         listing = ListingFactory(owner=verified_user,is_online=True,is_under_review=False)

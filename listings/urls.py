@@ -1,7 +1,7 @@
 
 from django.urls import path
 
-from .views import ListingCreateAndList, ListingDetailUpdateDelete, ListingImageCreateView, ListingImageDestroyView, ListingByOwnerList, ListingByOwnerDetailView, FavouriteListingUpdate, FavouriteListView, CompareListings,RecommendedListings, ListingControlListView, ListingControlDetailView, ListingManagementListView, ListingManagementDetailUpdateDelete, ListingReportCreateView, ListingReportList, ListingListCounter
+from .views import ListingCreateAndList, ListingDetailUpdateDelete, ListingImageCreateView, ListingImageDestroyView, ListingByOwnerList, ListingByOwnerDetailView, FavouriteListingUpdate, FavouriteListView, CompareListings,RecommendedListings, ListingControlListView, ListingControlDetailView, ListingManagementListView, ListingManagementDetailUpdateDelete, ListingReportCreateView, ListingReportList, ListingListCounter, ListingMostViewedView
 
 urlpatterns = [
     path("", ListingCreateAndList.as_view(), name="listing-list"),
@@ -11,6 +11,7 @@ urlpatterns = [
     path("control/<int:pk>/", ListingControlDetailView.as_view(), name="listing-control-detail"),
     path("management/", ListingManagementListView.as_view(), name="listing-management"),
     path("management/<int:pk>/", ListingManagementDetailUpdateDelete.as_view(), name="listing-management-detail"),
+    path("most-viewed/", ListingMostViewedView.as_view(), name="listing-most-viewed"),
     path("my/", ListingByOwnerList.as_view(), name="listing-by-owner-list"),
     path("my/<int:pk>/", ListingByOwnerDetailView.as_view(), name="listing-by-owner-detail"),
     path("update-favourite/<int:pk>/", FavouriteListingUpdate.as_view(), name="favourite-list-update"),
