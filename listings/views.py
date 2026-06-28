@@ -142,7 +142,7 @@ class ListingManagementDetailUpdateDelete(
 class ListingMostViewedView(generics.ListAPIView):
     permission_classes = []
     serializer_class = ListingSerializer
-    queryset = Listing.objects.online().order_by("-view_count")[:8]
+    queryset = Listing.objects.online().order_by("-view_count")[:9]
 
 
  

@@ -185,13 +185,13 @@ class ListingViewsTests(APITestCase):
         
     def test_listing_most_viewed(self):
         verified_user = self.authenticate_user()
-        listings1 = ListingFactory.create_batch(8, is_online=True,is_under_review=False,view_count=10)
+        listings1 = ListingFactory.create_batch(9, is_online=True,is_under_review=False,view_count=10)
         listings2 = ListingFactory.create_batch(8, is_online=True,is_under_review=False)
         url = reverse("listing-most-viewed")
         response = self.client.get(url)
         result_ids = [listing["id"] for listing in response.data["results"]]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["results"]), 8)
+        self.assertEqual(len(response.data["results"]), 9)
         self.assertIn(listings1[0].id, result_ids)
         self.assertIn(listings1[3].id, result_ids)
         self.assertNotIn(listings2[0].id, result_ids)
