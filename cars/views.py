@@ -23,8 +23,9 @@ from .serializers import (
 
 
 class CarBodyTypeListCreate(VehicleDataPermission, generics.ListCreateAPIView):
-    queryset = CarBodyType.objects.all()
+    queryset = CarBodyType.objects.all().order_by("name")
     serializer_class = CarBodyTypeSerializer
+
 
 
 class CarBodyTypeDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIView):
@@ -32,8 +33,8 @@ class CarBodyTypeDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPI
     serializer_class = CarBodyTypeSerializer
 
 
-class CarBrandList(VehicleDataPermission, generics.ListAPIView):
-    queryset = CarBrand.objects.all()
+class CarBrandList(generics.ListAPIView):
+    queryset = CarBrand.objects.all().order_by("name")
     serializer_class = CarBrandSimpleSerializer
 
     def get_queryset(self):
@@ -45,17 +46,15 @@ class CarBrandList(VehicleDataPermission, generics.ListAPIView):
 
 
 class CarBrandListCreate(VehicleDataPermission, generics.ListCreateAPIView):
-    queryset = CarBrand.objects.all()
+    queryset = CarBrand.objects.all().order_by("name")
     serializer_class = CarBrandSerializer
-
 
 class CarBrandDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIView):
     queryset = CarBrand.objects.all()
     serializer_class = CarBrandSerializer
 
-
-class CarModelList(VehicleDataPermission, generics.ListAPIView):
-    queryset = CarModel.objects.all()
+class CarModelList(generics.ListAPIView):
+    queryset = CarModel.objects.all().order_by("name")
     serializer_class = CarModelSimpleSerializer
 
     def get_queryset(self):
@@ -68,17 +67,15 @@ class CarModelList(VehicleDataPermission, generics.ListAPIView):
 
 
 class CarModelListCreate(VehicleDataPermission, generics.ListCreateAPIView):
-    queryset = CarModel.objects.all()
+    queryset = CarModel.objects.all().order_by("name")
     serializer_class = CarModelSerializer
-
 
 class CarModelDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIView):
     queryset = CarModel.objects.all()
     serializer_class = CarModelSerializer
 
-
-class CarModelTrimList(VehicleDataPermission, generics.ListAPIView):
-    queryset = CarModelTrim.objects.all()
+class CarModelTrimList(generics.ListAPIView):
+    queryset = CarModelTrim.objects.all().order_by("name")
     serializer_class = CarModelTrimNameSerializer
 
     def get_queryset(self):
@@ -91,7 +88,7 @@ class CarModelTrimList(VehicleDataPermission, generics.ListAPIView):
 
 
 class CarModelTrimListCreate(VehicleDataPermission, generics.ListCreateAPIView):
-    queryset = CarModelTrim.objects.all()
+    queryset = CarModelTrim.objects.all().order_by("name")
     serializer_class = CarModelTrimSerializer
 
 
@@ -99,24 +96,19 @@ class CarModelTrimDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAP
     queryset = CarModelTrim.objects.all()
     serializer_class = CarModelTrimSerializer
 
-
 class CarDriveTrainListCreate(VehicleDataPermission, generics.ListCreateAPIView):
-    queryset = CarDriveTrain.objects.all()
+    queryset = CarDriveTrain.objects.all().order_by("name")
     serializer_class = CarDriveTrainSerializer
-
 
 class CarDriveTrainDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIView):
     queryset = CarDriveTrain.objects.all()
     serializer_class = CarDriveTrainSerializer
 
-
 class CarConditionListCreate(VehicleDataPermission, generics.ListCreateAPIView):
-    queryset = CarCondition.objects.all()
+    queryset = CarCondition.objects.all().order_by("name")
     serializer_class = CarConditionSerializer
-
 
 class CarConditionDetail(VehicleDataPermission, generics.RetrieveUpdateDestroyAPIView):
     queryset = CarCondition.objects.all()
     serializer_class = CarConditionSerializer
-
 

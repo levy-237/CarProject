@@ -1,9 +1,8 @@
 from rest_framework import permissions
-
-# we customize those later, for now we will use the default permissions
+from config.permissions import IsAdminOrReadOnly
 
 class VehicleDataPermission:
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class ListingPermission:
