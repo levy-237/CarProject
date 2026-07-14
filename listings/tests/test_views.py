@@ -264,7 +264,26 @@ class ListingViewsTests(APITestCase):
         self.assertEqual(verified_user.favourite_listings.count(),1)
         self.assertEqual(verified_user.favourite_listings.first(),listing_2)
         
+    def test_get_favourite_count_listing(self):
+        verified_user = self.authenticate_user()
+        listing_1 = ListingFactory(is_online=True,is_under_review=False)
+        listing_2 = ListingFactory(is_online=True,is_under_review=False)
         
+        url = reverse("favourite-list-update",args=[listing_1.id])
+        
+        add_fav_response = self.client.post(url)
+        
+        fav_listing_url = reverse("listing-detail",args=[listing_1.id])
+        non_fav_listing_url = reverse("listing-detail",args=[listing_2.id])
+        
+        fav_response = self.client.get(fav_listing_url)
+        non_fav_response = self.client.get(non_fav_listing_url)
+        
+        self.assertEqual(add_fav_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(fav_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(non_fav_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(fav_response.data["favourite_count"], 1)
+        self.assertEqual(non_fav_response.data["favourite_count"], 0)
         
         
         

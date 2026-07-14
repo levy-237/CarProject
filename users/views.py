@@ -2,7 +2,7 @@ from rest_framework import generics
 from common.query_helpers import filter_by_relation
 from .models import User, savedSearch, Province, City,ZipCode
 from .serializers import UserSerializer, SavedSeachSerializer, ProvinceSerializer, CitySerializer, ZipcodeSerializer
-from config.mixins import UserPermission
+from config.mixins import UserPermission, VehicleDataPermission
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from listings.imagekit import create_image, destroy_image
 from common.mail_services import send_email_safely
@@ -35,22 +35,22 @@ class UserCreateView(generics.CreateAPIView):
         
         
 class UserCompanyListView(
-    # UserPermission,
+    UserPermission,
     generics.ListAPIView
 ):
     queryset = User.objects.filter(is_private=False)
     serializer_class = UserSerializer
 
 class UserDetailView(
-    # UserPermission,
+    UserPermission,
     generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     
     def perform_update(self, serializer):
         user = serializer.instance
-        # if user != self.request.user and not self.request.user.is_staff:
-        #     raise PermissionDenied("You can only edit your own profile")
+        if user != self.request.user and not self.request.user.is_staff:
+            raise PermissionDenied("You can only edit your own profile")
         
         serializer.save()
     
@@ -234,7 +234,7 @@ class ChangePassword(
         
         
 class UserMeView(
-     # UserPermission,
+     UserPermission,
     generics.RetrieveAPIView):
     serializer_class = UserSerializer
     
@@ -242,7 +242,7 @@ class UserMeView(
         return self.request.user
 
 class UserListView(
-    # UserPermission,
+    UserPermission,
     generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -250,7 +250,7 @@ class UserListView(
 
 
 class AddSavedSearch(
-    # UserPermission,
+    UserPermission,
     generics.ListCreateAPIView
 ):
     queryset = savedSearch.objects.all()
@@ -265,7 +265,7 @@ class AddSavedSearch(
     
 
 class SavedSearchDetailUpdateDelete(
-    # UserPermission,
+    UserPermission,
     generics.RetrieveUpdateDestroyAPIView):
     
     queryset = savedSearch.objects.all()
@@ -299,19 +299,19 @@ class SavedSearchDetailUpdateDelete(
     
 
 class ProvinceList(
-    # ListingPermission,
+    VehicleDataPermission,
     generics.ListCreateAPIView):
     queryset = Province.objects.all()
     serializer_class = ProvinceSerializer
     
 class ProvinceDetailUpdateDestroy(
-    # ListingPermission,
+    VehicleDataPermission,
       generics.RetrieveUpdateDestroyAPIView):
     queryset = Province.objects.all()
     serializer_class = ProvinceSerializer
     
 class CityList(
-    # ListingPermission,
+    VehicleDataPermission,
     generics.ListCreateAPIView):
     queryset = City.objects.all()
     serializer_class = CitySerializer
@@ -321,19 +321,19 @@ class CityList(
         return filter_by_relation(queryset, self.request, "province_id")
     
 class CityDetailUpdateDestroy(
-    # ListingPermission,
+    VehicleDataPermission,
       generics.RetrieveUpdateDestroyAPIView):
     queryset = City.objects.all()
     serializer_class = CitySerializer
 
 class ZipCodeList(
-    # ListingPermission,
+    VehicleDataPermission,
     generics.ListCreateAPIView):
     queryset = ZipCode.objects.all()
     serializer_class = ZipcodeSerializer
     
 class ZipCodeDetailUpdateDestroy(
-    # ListingPermission,
+    VehicleDataPermission,
       generics.RetrieveUpdateDestroyAPIView):
     queryset = ZipCode.objects.all()
     serializer_class = ZipcodeSerializer

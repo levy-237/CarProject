@@ -10,6 +10,7 @@ class ListingPermission:
 
 class StaffPermission:
     permission_classes = [permissions.IsAdminUser]
+    
 # class DetailListingPermission:
 #     permission_classes = [permissions.IsAuthenticated]
     
