@@ -1,6 +1,6 @@
 from rest_framework import generics
 from rest_framework.parsers import FormParser, MultiPartParser
-from config.mixins import ListingPermission, StaffPermission, UserPermission
+from config.mixins import AuthenticatedOrReadOnlyPermissionMixin, StaffOnlyPermissionMixin, AuthenticatedPermissionMixin
 from rest_framework import filters
 from .models import Image, Listing, PriceHistory, ListingReport
 from django.db.models import F
@@ -16,7 +16,7 @@ from common.mail_services import send_email_safely
 from .saved_search import listing_matches_any_saved_search
 
 class ListingCreateAndList(
-    ListingPermission,
+    AuthenticatedOrReadOnlyPermissionMixin,
     generics.ListCreateAPIView):
     queryset = Listing.objects.online()
     serializer_class = ListingListDetailSerializer
@@ -35,7 +35,7 @@ class ListingCreateAndList(
         send_email_safely(to_name="Support", to_email="levanilominashvili23@gmail.com", subject="New Listing Created", text="A new listing has been created.")
 
 class ListingListCounter(
-    ListingPermission,
+    AuthenticatedOrReadOnlyPermissionMixin,
     generics.ListAPIView,
 ):
     queryset = Listing.objects.online()
@@ -50,7 +50,7 @@ class ListingListCounter(
         return Response({"count": queryset.count()})
     
 class ListingDetailUpdateDelete(
-    ListingPermission,
+    AuthenticatedOrReadOnlyPermissionMixin,
     generics.RetrieveUpdateDestroyAPIView):
     queryset = Listing.objects.online()
     serializer_class = ListingSerializer
@@ -84,21 +84,20 @@ class ListingDetailUpdateDelete(
         user = self.request.user
         if instance.owner != user and not user.is_staff:
             raise PermissionDenied("Du bist nicht der Besitzer dieses Inserats.")
-        for image in instance.images.exclude(storage_key=""):
-            destroy_image(image.storage_key)
+
 
         instance.delete()
         
         
 # control view for user submited listings that is under review
 class ListingControlListView(
-    StaffPermission,
+    StaffOnlyPermissionMixin,
     generics.ListAPIView):
     queryset = Listing.objects.is_under_review()
     serializer_class = ListingControlSerializer
     
 class ListingControlDetailView(
-    StaffPermission,
+    StaffOnlyPermissionMixin,
     generics.RetrieveUpdateDestroyAPIView):
     queryset = Listing.objects.is_under_review()
     serializer_class = ListingControlSerializer
@@ -127,14 +126,14 @@ class ListingControlDetailView(
 
 # management for listings any listings
 class ListingManagementListView(
-    StaffPermission,
+    StaffOnlyPermissionMixin,
     generics.ListCreateAPIView):
     queryset = Listing.objects.everything()
     serializer_class = ListingManagementSerializer
 
 
 class ListingManagementDetailUpdateDelete(
-    StaffPermission,
+    StaffOnlyPermissionMixin,
     generics.RetrieveUpdateDestroyAPIView):
     queryset = Listing.objects.everything()
     serializer_class = ListingManagementSerializer
@@ -148,7 +147,7 @@ class ListingMostViewedView(generics.ListAPIView):
 
  
 class FavouriteListingUpdate(
-    ListingPermission,
+    AuthenticatedOrReadOnlyPermissionMixin,
     generics.CreateAPIView):
     serializer_class = ListingSerializer
     
@@ -173,7 +172,7 @@ class FavouriteListingUpdate(
                 
                 
 class FavouriteListView(
-    UserPermission,
+    AuthenticatedPermissionMixin,
     generics.ListAPIView):
     serializer_class = ListingListDetailSerializer
     
@@ -231,7 +230,7 @@ class RecommendedListings(generics.ListAPIView):
 
 
 class ListingByOwnerList(
-    UserPermission,
+    AuthenticatedPermissionMixin,
     generics.ListAPIView):  
     serializer_class = ListingListDetailSerializer
     
@@ -239,7 +238,7 @@ class ListingByOwnerList(
         return Listing.objects.by_owner(user=self.request.user)
 
 class ListingByOwnerDetailView(
-    UserPermission,
+    AuthenticatedPermissionMixin,
     generics.RetrieveAPIView):
     serializer_class = ListingSerializer
     
@@ -251,7 +250,7 @@ class ListingByOwnerDetailView(
  
 
 class ListingReportCreateView(
-    # ListingPermission,
+    # AuthenticatedOrReadOnlyPermissionMixin,
     generics.CreateAPIView):
     serializer_class = ListingReportSerializer
     queryset = ListingReport.objects.all()
@@ -268,13 +267,13 @@ class ListingReportCreateView(
         serializer.save(reported_by=reporter, listing=listing)
 
 class ListingReportList(
-    StaffPermission,
+    StaffOnlyPermissionMixin,
     generics.ListAPIView):
     serializer_class = ListingReportSerializer
     queryset = ListingReport.objects.all().order_by("-created_at")
 
 class ListingImageCreateView(
-    UserPermission,
+    AuthenticatedPermissionMixin,
     generics.ListCreateAPIView):
     queryset = Image.objects.all()
     serializer_class = ListingImageCreateSerializer
@@ -303,7 +302,7 @@ class ListingImageCreateView(
            listing.save(update_fields=["is_online", "is_under_review"])
 
 class ListingImageDestroyView(
-    UserPermission,
+    AuthenticatedPermissionMixin,
     generics.RetrieveUpdateDestroyAPIView):
     queryset = Image.objects.all()
     serializer_class = ListingImageCreateSerializer
@@ -312,7 +311,5 @@ class ListingImageDestroyView(
         if instance.listing.owner != self.request.user and not self.request.user.is_staff:
             raise PermissionDenied("You are not the owner of this image.")
 
-        if instance.storage_key:
-            destroy_image(instance.storage_key)
         instance.delete()
 
