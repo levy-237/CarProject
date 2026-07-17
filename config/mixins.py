@@ -1,19 +1,19 @@
 from rest_framework import permissions
 from config.permissions import IsAdminOrReadOnly
 
-class VehicleDataPermission:
+class AdminOrReadOnlyPermissionMixin:
     permission_classes = [IsAdminOrReadOnly]
 
 
-class ListingPermission:
+class AuthenticatedOrReadOnlyPermissionMixin:
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-class StaffPermission:
+class StaffOnlyPermissionMixin:
     permission_classes = [permissions.IsAdminUser]
     
 # class DetailListingPermission:
 #     permission_classes = [permissions.IsAuthenticated]
     
     
-class UserPermission:
+class AuthenticatedPermissionMixin:
     permission_classes = [permissions.IsAuthenticated]

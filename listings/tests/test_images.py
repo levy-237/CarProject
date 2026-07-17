@@ -44,12 +44,26 @@ class ImageViewTests(APITestCase):
         self.assertEqual(image.image, "https://cdn.example.com/uploaded.jpg")
         self.assertEqual(image.storage_key, "uploaded-key-1")
 
-    @patch("listings.views.destroy_image")
-    def test_owner_can_delete_image(self, mock_destroy_image):
+
+        
+    @patch("listings.signals.destroy_image")
+    def test_deleting_image_triggers_imagekit_cleanup(self, mock_destroy_image):
+        image = ImageFactory(listing=self.listing, storage_key="delete-key-1")
+
+        image.delete()
+
+        self.assertFalse(Image.objects.filter(id=image.id).exists())
+        mock_destroy_image.assert_called_once_with("delete-key-1")     
+        
+        
+    @patch("listings.signals.destroy_image")
+    def test_owner_can_delete_image_through_endpoint(self, mock_destroy_image):
         image = ImageFactory(listing=self.listing, storage_key="delete-key-1")
         self.client.force_authenticate(user=self.owner)
 
-        response = self.client.delete(reverse("listing-image-detail", args=[image.id]))
+        response = self.client.delete(
+            reverse("listing-image-detail", args=[image.id])
+        )
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Image.objects.filter(id=image.id).exists())

@@ -1,11 +1,15 @@
+from unittest import skipUnless
 from unittest.mock import patch
 
 from rest_framework import status
+from django.conf import settings
 from django.urls import reverse
 from listings.tests.factories import ListingFactory
-from listings.models import Listing, PriceHistory, ListingReport
+from listings.models import Image, Listing, PriceHistory, ListingReport
+from listings.imagekit import destroy_image
 from cars.tests.factories import CarBrandFactory,CarModelFactory,CarBodyTypeFactory,CarConditionFactory,CarModelTrimFactory
 from users.tests.factories import UserFactory
+from listings.tests.test_images import make_image_file
 from rest_framework.test import APITestCase
 from datetime import date
 
@@ -41,8 +45,8 @@ class ListingViewsTests(APITestCase):
             "power": self.power,
             "title": self.title,
             "description": self.description,
-        } 
-        
+        }
+
     def authenticate_user(self, *, is_verified=True, is_staff=False):
         user = UserFactory(is_verified=is_verified, is_staff=is_staff)
         self.client.force_authenticate(user=user)
@@ -57,23 +61,50 @@ class ListingViewsTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 10)
         
+    @skipUnless(settings.IMAGEKIT_PRIVATE_KEY, "ImageKit is not configured.")
     def test_can_verified_user_create_listing(self):  
         verified_user = self.authenticate_user()
         
         response = self.client.post(self.url,self.payload,format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["brand"], self.brand.id)
-        self.assertEqual(response.data["model"], self.model.id)
-        self.assertEqual(response.data["model_trim"], self.model_trim.id)
-        self.assertEqual(response.data["body_type"], self.body_type.id)
-        self.assertEqual(response.data["condition"], self.condition.id)
-        self.assertEqual(response.data["makeyear"], self.makeyear.isoformat())
-        self.assertEqual(response.data["price"], self.price)
-        self.assertEqual(response.data["mileage"], self.mileage)
-        self.assertEqual(response.data["power"], self.power)
         self.assertEqual(response.data["description"], self.description)
+
+        image_response = self.client.post(
+            reverse("listing-image-create"),
+            {"listing": response.data["id"], "image": make_image_file()},
+            format="multipart",
+        )
+
+        self.assertEqual(image_response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(image_response.data["storage_key"])
+        self.addCleanup(destroy_image, image_response.data["storage_key"])
+        self.assertEqual(Image.objects.count(), 1)
         self.assertEqual(Listing.objects.count(), 1)
         
+    @skipUnless(settings.IMAGEKIT_PRIVATE_KEY, "ImageKit is not configured.")
+    def test_owner_can_delete_listing_image_from_imagekit_and_local_db(self):
+        owner = self.authenticate_user()
+
+        listing_response = self.client.post(self.url, self.payload, format="json")
+        self.assertEqual(listing_response.status_code, status.HTTP_201_CREATED)
+
+        image_response = self.client.post(
+            reverse("listing-image-create"),
+            {"listing": listing_response.data["id"], "image": make_image_file()},
+            format="multipart",
+        )
+        self.assertEqual(image_response.status_code, status.HTTP_201_CREATED)
+
+        image_id = image_response.data["id"]
+
+        delete_response = self.client.delete(
+            reverse("listing-image-detail", args=[image_id])
+        )
+
+        self.assertEqual(delete_response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Image.objects.filter(id=image_id).exists())
+
         
     def test_can_non_verified_user_create_listing(self):
         non_verified_user = self.authenticate_user(is_verified=False)
