@@ -1,11 +1,25 @@
+from io import BytesIO
+from unittest import skipUnless
 from unittest.mock import patch
 
+from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from PIL import Image as PILImage
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from listings.imagekit import destroy_image
 from users.models import User
+from listings.models import Image
 from users.tests.factories import CityFactory, ProvinceFactory, UserFactory
+
+
+def make_image_file(name="profile.jpg"):
+    buffer = BytesIO()
+    PILImage.new("RGB", (10, 10), color="red").save(buffer, format="JPEG")
+    buffer.seek(0)
+    return SimpleUploadedFile(name, buffer.read(), content_type="image/jpeg")
 
 
 class UserViewTests(APITestCase):
@@ -13,6 +27,17 @@ class UserViewTests(APITestCase):
         self.province = ProvinceFactory()
 
         self.city = CityFactory(province=self.province)
+        self.user_with_image_payload = {
+            "username": "imageuser",
+            "first_name": "Image",
+            "last_name": "User",
+            "email": "imageuser@example.com",
+            "password": "testpassword123",
+            "province": self.province.id,   
+            "city": self.city.id,
+            "is_private": True,
+            "picture_file": make_image_file(),
+        }
 
     @patch("users.views.send_email_safely")
     def test_register_creates_user(self, mock_send_email):
@@ -32,6 +57,43 @@ class UserViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(User.objects.filter(email="newuser@example.com").exists())
         mock_send_email.assert_called_once()
+
+    @skipUnless(settings.IMAGEKIT_PRIVATE_KEY, "ImageKit is not configured.")
+    @patch("users.views.send_email_safely")
+    def test_register_creates_user_with_profile_image(self, mock_send_email):
+
+
+        response = self.client.post(reverse("user-register"), self.user_with_image_payload, format="multipart")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user = User.objects.get(email="imageuser@example.com")
+        self.addCleanup(destroy_image, user.storage_key)
+        self.assertTrue(user.picture)
+        self.assertTrue(user.storage_key)
+        mock_send_email.assert_called_once()
+
+    @skipUnless(settings.IMAGEKIT_PRIVATE_KEY, "ImageKit is not configured.")
+    @patch("users.views.send_email_safely")
+    def test_delete_user_with_profile_image(self, mock_send_email):
+    
+
+        register_response = self.client.post(
+            reverse("user-register"),
+            self.user_with_image_payload,
+            format="multipart",
+        )
+        self.assertEqual(register_response.status_code, status.HTTP_201_CREATED)
+        user = User.objects.get(email="deleteimageuser@example.com")
+        self.assertTrue(user.storage_key)
+        self.assertTrue(Image.objects.filter(storage_key=user.storage_key).exists())
+        mock_send_email.assert_called_once()
+
+        self.client.force_authenticate(user=user)
+        delete_response = self.client.delete(reverse("user-detail", args=[user.id]))
+        
+        self.assertFalse(Image.objects.filter(storage_key=user.storage_key).exists())
+        self.assertEqual(delete_response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(User.objects.filter(id=user.id).exists())
 
     def test_me_returns_current_user(self):
         user = UserFactory()
