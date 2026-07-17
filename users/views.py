@@ -2,7 +2,7 @@ from rest_framework import generics
 from common.query_helpers import filter_by_relation
 from .models import User, savedSearch, Province, City,ZipCode
 from .serializers import UserSerializer, SavedSeachSerializer, ProvinceSerializer, CitySerializer, ZipcodeSerializer
-from config.mixins import UserPermission, VehicleDataPermission
+from config.mixins import AuthenticatedPermissionMixin, AdminOrReadOnlyPermissionMixin
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from listings.imagekit import create_image, destroy_image
 from common.mail_services import send_email_safely
@@ -35,14 +35,14 @@ class UserCreateView(generics.CreateAPIView):
         
         
 class UserCompanyListView(
-    UserPermission,
+    AuthenticatedPermissionMixin,
     generics.ListAPIView
 ):
     queryset = User.objects.filter(is_private=False)
     serializer_class = UserSerializer
 
 class UserDetailView(
-    UserPermission,
+    AuthenticatedPermissionMixin,
     generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -57,6 +57,9 @@ class UserDetailView(
     def perform_destroy(self,instance):
         if self.request.user != instance and not self.request.user.is_staff: 
             raise PermissionDenied("Du kannst nur dein eigenes Profil löschen.")
+
+        # this does not trigger signal becasue IMAGE is not connect to user.
+        # it is just field
         
         if instance.storage_key:
             destroy_image(instance.storage_key)
@@ -66,7 +69,7 @@ class UserDetailView(
 
 
 class SendEmailVerficationCode(
-     UserPermission,
+     AuthenticatedPermissionMixin,
     APIView):
 
     
@@ -92,7 +95,7 @@ class SendEmailVerficationCode(
         
         
 class VerifyUser(
-         UserPermission,
+         AuthenticatedPermissionMixin,
          APIView):
     
     def post(self,request):
@@ -207,7 +210,7 @@ class RecoverPassword(
         
         
 class ChangePassword(
-    UserPermission,
+    AuthenticatedPermissionMixin,
     APIView):
     
     def post(self,request):
@@ -234,7 +237,7 @@ class ChangePassword(
         
         
 class UserMeView(
-     UserPermission,
+     AuthenticatedPermissionMixin,
     generics.RetrieveAPIView):
     serializer_class = UserSerializer
     
@@ -242,7 +245,7 @@ class UserMeView(
         return self.request.user
 
 class UserListView(
-    UserPermission,
+    AuthenticatedPermissionMixin,
     generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -250,7 +253,7 @@ class UserListView(
 
 
 class AddSavedSearch(
-    UserPermission,
+    AuthenticatedPermissionMixin,
     generics.ListCreateAPIView
 ):
     queryset = savedSearch.objects.all()
@@ -265,7 +268,7 @@ class AddSavedSearch(
     
 
 class SavedSearchDetailUpdateDelete(
-    UserPermission,
+    AuthenticatedPermissionMixin,
     generics.RetrieveUpdateDestroyAPIView):
     
     queryset = savedSearch.objects.all()
@@ -299,19 +302,19 @@ class SavedSearchDetailUpdateDelete(
     
 
 class ProvinceList(
-    VehicleDataPermission,
+    AdminOrReadOnlyPermissionMixin,
     generics.ListCreateAPIView):
     queryset = Province.objects.all()
     serializer_class = ProvinceSerializer
     
 class ProvinceDetailUpdateDestroy(
-    VehicleDataPermission,
+    AdminOrReadOnlyPermissionMixin,
       generics.RetrieveUpdateDestroyAPIView):
     queryset = Province.objects.all()
     serializer_class = ProvinceSerializer
     
 class CityList(
-    VehicleDataPermission,
+    AdminOrReadOnlyPermissionMixin,
     generics.ListCreateAPIView):
     queryset = City.objects.all()
     serializer_class = CitySerializer
@@ -321,19 +324,19 @@ class CityList(
         return filter_by_relation(queryset, self.request, "province_id")
     
 class CityDetailUpdateDestroy(
-    VehicleDataPermission,
+    AdminOrReadOnlyPermissionMixin,
       generics.RetrieveUpdateDestroyAPIView):
     queryset = City.objects.all()
     serializer_class = CitySerializer
 
 class ZipCodeList(
-    VehicleDataPermission,
+    AdminOrReadOnlyPermissionMixin,
     generics.ListCreateAPIView):
     queryset = ZipCode.objects.all()
     serializer_class = ZipcodeSerializer
     
 class ZipCodeDetailUpdateDestroy(
-    VehicleDataPermission,
+    AdminOrReadOnlyPermissionMixin,
       generics.RetrieveUpdateDestroyAPIView):
     queryset = ZipCode.objects.all()
     serializer_class = ZipcodeSerializer

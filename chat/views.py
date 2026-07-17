@@ -3,14 +3,15 @@ from django.shortcuts import render
 from rest_framework import generics
 from rest_framework import permissions
 from rest_framework.exceptions import PermissionDenied
-from config.mixins import UserPermission
+from config.mixins import AuthenticatedPermissionMixin
 from .models import Chat, Message
 from .serializers import ChatSerializer, MessageSerializer
 
+# views for chat are still under development
 
 
 class ChatListCreateView(
-    # UserPermission,
+    # AuthenticatedPermissionMixin,
     generics.ListCreateAPIView):
     serializer_class = ChatSerializer
     queryset = Chat.objects.all()
@@ -28,7 +29,7 @@ class ChatListCreateView(
 
 
 class ChatDetailUpdateDeleteView(
-    # UserPermission,
+    # AuthenticatedPermissionMixin,
     generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ChatSerializer
     queryset = Chat.objects.all()
@@ -57,7 +58,7 @@ class ChatDetailUpdateDeleteView(
 
 
 class MessageListCreateView(
-    # UserPermission,
+    # AuthenticatedPermissionMixin,
     generics.ListCreateAPIView):
     serializer_class = MessageSerializer
     queryset = Message.objects.all()
@@ -84,7 +85,7 @@ class MessageListCreateView(
 
 
 class MessageDetailUpdateDeleteView(
-    # UserPermission,
+    # AuthenticatedPermissionMixin,
     generics.RetrieveUpdateDestroyAPIView):
     serializer_class = MessageSerializer
     queryset = Message.objects.all()
