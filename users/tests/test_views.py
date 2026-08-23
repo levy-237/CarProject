@@ -123,3 +123,53 @@ class UserViewTests(APITestCase):
         response = self.client.get(reverse("user-company-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 10)
+
+    @patch("users.views.send_email_safely")
+    def test_recovery_request_does_not_reveal_if_email_exists(self, mock_send_email):
+        user = UserFactory()
+
+        existing_response = self.client.post(
+            reverse("send-user-password-recovery"),
+            {"email": user.email},
+            format="json",
+        )
+        missing_response = self.client.post(
+            reverse("send-user-password-recovery"),
+            {"email": "missing@example.com"},
+            format="json",
+        )
+
+        self.assertEqual(existing_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(missing_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(existing_response.data, missing_response.data)
+        self.assertEqual(
+            existing_response.data,
+            {
+                "message": "Falls ein Konto mit dieser E-Mail-Adresse existiert, wurde ein Wiederherstellungscode gesendet."
+            },
+        )
+
+    def test_recovery_attempt_does_not_reveal_if_email_exists(self):
+        user = UserFactory()
+        payload = {"new_password": "NewSecurePassword123!", "code": "123456"}
+
+        existing_response = self.client.post(
+            reverse("user-password-recovery"),
+            {"email": user.email, **payload},
+            format="json",
+        )
+        missing_response = self.client.post(
+            reverse("user-password-recovery"),
+            {"email": "missing@example.com", **payload},
+            format="json",
+        )
+
+        self.assertEqual(existing_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(missing_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(existing_response.data, missing_response.data)
+        self.assertEqual(
+            existing_response.data,
+            {
+                "detail": "E-Mail-Adresse oder Wiederherstellungscode ist ungültig oder abgelaufen."
+            },
+        )

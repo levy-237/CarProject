@@ -32,7 +32,7 @@ class ListingImageCreateSerializer(serializers.ModelSerializer):
     
 
 
-
+# can just set min value but just wanted to use custom validator in serializer
 def validate_IntValue(value):
     if value is not None and value <= 0:
         raise serializers.ValidationError(
