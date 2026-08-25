@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.db import IntegrityError, transaction
 from listings.models import Listing
 from users.models import User
 from listings.tests.factories import ListingFactory
@@ -90,3 +91,17 @@ class ListingModelTests(TestCase):
         listing_id = self.listing.id
         self.user.delete()
         self.assertFalse(Listing.objects.filter(id=listing_id).exists())
+
+    def test_listing_cannot_have_negative_mileage(self):
+        self.listing.mileage = -1
+
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                self.listing.save(update_fields=["mileage"])
+
+    def test_battery_health_cannot_be_above_100(self):
+        self.listing.battery_health = 101
+
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                self.listing.save(update_fields=["battery_health"])

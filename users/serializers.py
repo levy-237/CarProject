@@ -32,7 +32,7 @@ class ZipcodeSerializer(serializers.ModelSerializer):
         model = ZipCode
         fields =["id","created_at","code","cities"]
 
-
+# TODO:need to create custom private and public user serializers
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     picture_file = serializers.FileField(write_only=True, required=False)

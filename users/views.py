@@ -136,6 +136,9 @@ class SendPasswordRecoveryEmail(
     APIView):
     def post(self,request):
         email = request.data.get("email")
+        generic_response = {
+            "message": "Falls ein Konto mit dieser E-Mail-Adresse existiert, wurde ein Wiederherstellungscode gesendet."
+        }
         
         if not email:
             return Response({"detail":"E-Mail ist erforderlich."}, status=400)
@@ -144,7 +147,8 @@ class SendPasswordRecoveryEmail(
         user = User.objects.filter(email=email).first()
         
         if not user:
-            return Response({"detail":"Es wurde kein Konto mit dieser E-Mail-Adresse gefunden."}, status=404)
+            print("Password recovery requested for an email without an account.")
+            return Response(generic_response)
         
         time_now = timezone.now()
         verification_code = generate_verification_code()
@@ -162,8 +166,10 @@ class SendPasswordRecoveryEmail(
             "Password recovery code",
             f"Your password recovery for user {user.username} is here: {verification_code}",
         )
+
+        print("Password recovery code generated and email delivery attempted.")
         
-        return Response({"message":"Der Code zur Passwortwiederherstellung wurde per E-Mail gesendet."})
+        return Response(generic_response)
 
 class RecoverPassword(
     APIView):
@@ -171,6 +177,9 @@ class RecoverPassword(
         email = request.data.get("email")
         new_password = request.data.get("new_password")
         code = self.request.data.get("code")
+        generic_error = {
+            "detail": "E-Mail-Adresse oder Wiederherstellungscode ist ungültig oder abgelaufen."
+        }
         
         if not email or not new_password or not code:
             return Response({"detail":"E-Mail, neues Passwort und Wiederherstellungscode sind erforderlich."}, status=400)
@@ -178,26 +187,26 @@ class RecoverPassword(
         user = User.objects.filter(email=email).first()
         
         if not user:
-            return Response({"detail":"Benutzer wurde nicht gefunden."}, status=404)
+            print("Password recovery attempted for an email without an account.")
+            return Response(generic_error, status=400)
         
         if not user.password_recovery_code or not user.password_recovery_code_date:
-            return Response({"detail":"Es wurde kein Wiederherstellungscode angefordert."}, status=400)
-        
-        if user.check_password(new_password):
-            return Response({"detail":"Dieses Passwort wurde bereits verwendet."}, status=400)
-            
-        
-        if not code:
-            return Response({"detail":"Der Wiederherstellungscode ist erforderlich."}, status=400)
+            print("Password recovery attempted without an active recovery code.")
+            return Response(generic_error, status=400)
             
         time_now = timezone.now()
         time_difference = time_now - user.password_recovery_code_date
         
         if time_difference.total_seconds() > 600:
-            return Response({"detail":"Der Wiederherstellungscode ist abgelaufen."}, status=400)
+            print("Password recovery attempted with an expired code.")
+            return Response(generic_error, status=400)
         
         if not verify_code(code, user.password_recovery_code):
-            return Response({"detail":"Falscher Wiederherstellungscode."}, status=400)
+            print("Password recovery attempted with an incorrect code.")
+            return Response(generic_error, status=400)
+
+        if user.check_password(new_password):
+            return Response({"detail":"Dieses Passwort wurde bereits verwendet."}, status=400)
 
         
         user.password_recovery_code = None
@@ -336,8 +345,7 @@ class ZipCodeList(
     serializer_class = ZipcodeSerializer
     
 class ZipCodeDetailUpdateDestroy(
-    AdminOrReadOnlyPermissionMixin,
+      AdminOrReadOnlyPermissionMixin,
       generics.RetrieveUpdateDestroyAPIView):
     queryset = ZipCode.objects.all()
     serializer_class = ZipcodeSerializer
-    

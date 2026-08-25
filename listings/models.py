@@ -1,7 +1,7 @@
 from django.db import models
 from cars.models import CarBrand,CarBodyType,CarModel,CarCondition,CarModelTrim
 from users.models import User
-
+from django.db.models import Q
 
 def listing_image_upload_to(instance, filename):
     return f"listings/{instance.listing_id}/{filename}"
@@ -72,6 +72,30 @@ class Listing(models.Model):
     is_under_review = models.BooleanField(default=True)
     
     objects = ListingsManager()
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                name="battery_health_validator",
+                condition=(
+                    Q(battery_health__isnull=True)
+                    | (Q(battery_health__gte=0) & Q(battery_health__lte=100))
+                ),
+                violation_error_message="Battery health needs to be between 0 and 100",
+            ),
+            models.CheckConstraint(
+                name="integer_values_validator",
+                condition=(
+                    Q(price__gte=0)
+                    & Q(mileage__gte=1)
+                    & Q(power__gte=1)
+                    & Q(view_count__gte=0)
+                    & (Q(real_summer_range__isnull=True) | Q(real_summer_range__gte=1))
+                    & (Q(real_winter_range__isnull=True) | Q(real_winter_range__gte=1))
+                ),
+                violation_error_message="Integer values must be within their allowed ranges",
+            ),
+        ]
 
     def __str__(self):
         return f"car listing id: {self.pk} \n owner: {self.owner.username} - {self.owner.id}"
