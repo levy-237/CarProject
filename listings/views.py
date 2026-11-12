@@ -279,9 +279,10 @@ class ListingReportList(
 class ListingImageCreateView(
     AuthenticatedPermissionMixin,
     generics.ListCreateAPIView):
-    queryset = Image.objects.all()
+    queryset = Image.objects.select_related("listing")
     serializer_class = ListingImageCreateSerializer
     parser_classes = [MultiPartParser, FormParser]
+    
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -319,7 +320,26 @@ class ListingImageDestroyView(
     generics.RetrieveUpdateDestroyAPIView):
     queryset = Image.objects.all()
     serializer_class = ListingImageCreateSerializer
+    
+    
+    # will never happen because user cant update images values but
+    # will keep it just for practice
+    def perform_update(self,serializer):
+        user = self.request.user
+        image = serializer.instance
 
+        if image.listing.owner != user and not user.is_staff:
+                raise PermissionDenied("You are not the owner of this image.")
+
+        listing = serializer.validated_data.get("listing", image.listing)
+
+        if listing.owner != user and not user.is_staff:
+                raise PermissionDenied("You are not the owner of this listing.")
+
+        serializer.save()
+
+    
+    
     def perform_destroy(self, instance):
         if instance.listing.owner != self.request.user and not self.request.user.is_staff:
             raise PermissionDenied("You are not the owner of this image.")

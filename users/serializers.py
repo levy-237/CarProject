@@ -49,7 +49,9 @@ class UserSerializer(serializers.ModelSerializer):
         city = data.get("city", getattr(self.instance, "city", None))
         is_private = data.get("is_private")
         company_name = data.get("company_name")
-
+        
+        if self.instance is not None and "password" in data:
+            raise serializers.ValidationError({"password":"You can not change password through user update endpoint"})
         
         if province and city and city.province_id != province.id:
             raise serializers.ValidationError(
