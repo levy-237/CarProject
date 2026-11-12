@@ -10,6 +10,7 @@ from .filters import ListingFilter
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework import status
+from django.db import transaction
 from rest_framework.exceptions import ValidationError
 from .imagekit import create_image, destroy_image
 from common.mail_services import send_email_safely
@@ -72,14 +73,17 @@ class ListingDetailUpdateDelete(
         if listing.owner != user and not user.is_staff:
             raise PermissionDenied("Du bist nicht der Besitzer dieses Inserats.")
         new_price = serializer.validated_data.get("price")
-        if new_price is not None and new_price != listing.price:
-            PriceHistory.objects.create(listing=listing, old_price=listing.price)
+
+        with transaction.atomic():
+            if new_price is not None and new_price != listing.price:
+                PriceHistory.objects.create(listing=listing, old_price=listing.price)
+            
+            if self.request.user.is_staff:
+                serializer.save()
+            else:
+                serializer.save(is_online=False, is_under_review=True)
+
         
-        if self.request.user.is_staff:
-            serializer.save()
-        else:
-            serializer.save(is_online=False, is_under_review=True)
-    
     def perform_destroy(self, instance):
         user = self.request.user
         if instance.owner != user and not user.is_staff:
@@ -287,20 +291,29 @@ class ListingImageCreateView(
         image_file = serializer.validated_data.get("image")
         if listing.owner != user:
             raise PermissionDenied("You are not the owner of this listing.")
-        
-        if image_file:
-           stored_image = create_image(image_file)
-        
-        serializer.save(
-            image=stored_image.url,
-            storage_key=stored_image.file_id,
-        )
-        
-        if not self.request.user.is_staff:
-           listing.is_online = False
-           listing.is_under_review = True
-           listing.save(update_fields=["is_online", "is_under_review"])
-
+        stored_image = None
+        try:
+            if image_file:
+                stored_image = create_image(image_file)
+            
+            with transaction.atomic():
+                serializer.save(
+                image=stored_image.url,
+                storage_key=stored_image.file_id,
+                )
+            
+                if not self.request.user.is_staff:
+                    listing.is_online = False
+                    listing.is_under_review = True
+                    listing.save(update_fields=["is_online", "is_under_review"])
+        except Exception:
+            if stored_image is not None:
+                try:
+                    destroy_image(stored_image.file_id)
+                except:
+                    print("failed to cleam up imagekit file after DB failure")
+            raise
+            
 class ListingImageDestroyView(
     AuthenticatedPermissionMixin,
     generics.RetrieveUpdateDestroyAPIView):
