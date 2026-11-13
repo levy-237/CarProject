@@ -39,7 +39,7 @@ class UserViewTests(APITestCase):
             "picture_file": make_image_file(),
         }
 
-    @patch("users.views.send_email_safely")
+    @patch("users.views.send_welcome_email.delay")
     def test_register_creates_user(self, mock_send_email):
         payload = {
             "username": "newuser",
@@ -52,14 +52,21 @@ class UserViewTests(APITestCase):
             "is_private": True,
         }
 
-        response = self.client.post(reverse("user-register"), payload, format="json")
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(reverse("user-register"), payload, format="json")
+            mock_send_email.assert_not_called()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(User.objects.filter(email="newuser@example.com").exists())
-        mock_send_email.assert_called_once()
+        mock_send_email.assert_called_once_with(
+            "New User",
+            "newuser@example.com",
+            "Levanchiko says Hi!!!, Thanks for signing up on our beatiful website",
+            "Thanks for signing up on our beatiful website!, i hope you enjoy in!",
+        )
 
     @skipUnless(settings.IMAGEKIT_PRIVATE_KEY, "ImageKit is not configured.")
-    @patch("users.views.send_email_safely")
+    @patch("users.views.send_welcome_email.delay_on_commit")
     def test_register_creates_user_with_profile_image(self, mock_send_email):
 
 
@@ -73,7 +80,7 @@ class UserViewTests(APITestCase):
         mock_send_email.assert_called_once()
 
     @skipUnless(settings.IMAGEKIT_PRIVATE_KEY, "ImageKit is not configured.")
-    @patch("users.views.send_email_safely")
+    @patch("users.views.send_welcome_email.delay_on_commit")
     def test_delete_user_with_profile_image(self, mock_send_email):
     
 

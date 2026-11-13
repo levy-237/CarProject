@@ -6,6 +6,7 @@ from config.mixins import AuthenticatedPermissionMixin, AdminOrReadOnlyPermissio
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from listings.imagekit import create_image, destroy_image
 from common.mail_services import send_email_safely
+from .tasks import send_welcome_email
 from urllib.parse import parse_qs
 from .verification_code_generator import generate_verification_code
 from django.utils import timezone
@@ -31,7 +32,12 @@ class UserCreateView(generics.CreateAPIView):
         else:
             serializer.save()
         
-        send_email_safely(name, email, "Levanchiko says Hi!!!, Thanks for signing up on our beatiful website", "Thanks for signing up on our beatiful website!, i hope you enjoy in!")
+        send_welcome_email.delay_on_commit(
+            name,
+            email,
+            "Levanchiko says Hi!!!, Thanks for signing up on our beatiful website",
+            "Thanks for signing up on our beatiful website!, i hope you enjoy in!",
+        )
         
         
 class UserCompanyListView(
