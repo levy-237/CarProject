@@ -21,21 +21,63 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:4
+    hostname: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
   web:
     build: .
     env_file:
       - .env
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      REDIS_URL: redis://redis:6379/0
     ports:
       - "8000:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import socket; socket.create_connection(('127.0.0.1', 8000), timeout=5).close()",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  celery:
+    build: .
+    # Only web runs entrypoint.sh (migrations and static file collection).
+    entrypoint: []
+    command:
+      ["celery", "-A", "config", "worker", "--loglevel=info", "--concurrency=2"]
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      web:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
 volumes:
   postgres_data:
+  rabbitmq_data:
