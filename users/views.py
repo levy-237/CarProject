@@ -32,12 +32,12 @@ class UserCreateView(generics.CreateAPIView):
         else:
             serializer.save()
         
-        send_welcome_email.delay_on_commit(
-            name,
-            email,
-            "Levanchiko says Hi!!!, Thanks for signing up on our beatiful website",
-            "Thanks for signing up on our beatiful website!, i hope you enjoy in!",
-        )
+        # send_welcome_email.delay_on_commit(
+        #     name,
+        #     email,
+        #     "Levanchiko says Hi!!!, Thanks for signing up on our beatiful website",
+        #     "Thanks for signing up on our beatiful website!, i hope you enjoy in!",
+        # )
         
         
 class UserCompanyListView(
